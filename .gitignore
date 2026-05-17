@@ -141,7 +141,7 @@ app/uploads/*
 !app/uploads/.gitkeep
 
 # Database backups
-*.sql
+#*.sql
 *.dump
 *.backup
 

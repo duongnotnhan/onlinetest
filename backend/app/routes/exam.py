@@ -767,7 +767,7 @@ def import_questions_csv(paper_id):
             return jsonify({'error': 'Vui lòng chọn loại câu hỏi'}), 400
             
         stream = io.StringIO(file.stream.read().decode('utf-8-sig'), newline=None)
-        csv_data = csv.DictReader(stream)
+        csv_data = csv.DictReader(stream, delimiter=',;')
         
         # Tìm số thứ tự câu hỏi lớn nhất hiện tại
         last_q = Question.query.filter_by(paper_id=paper_id).order_by(Question.question_number.desc()).first()

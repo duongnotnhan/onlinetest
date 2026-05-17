@@ -1,37 +1,37 @@
-import React, { useState, useEffect } from 'react'
-import { adminAPI } from '@/api'
-import toast from 'react-hot-toast'
+import React, { useState, useEffect } from "react";
+import { adminAPI } from "@/api";
+import toast from "react-hot-toast";
 
 interface Student {
-  student_id: number
-  full_name: string
-  cccd: string
-  school_name: string
-  is_active: boolean
+  student_id: number;
+  full_name: string;
+  cccd: string;
+  school_name: string;
+  is_active: boolean;
 }
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([])
-  const [loading, setLoading] = useState(true)
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStudents()
-  }, [])
+    fetchStudents();
+  }, []);
 
   const fetchStudents = async () => {
     try {
-      const response = await adminAPI.getStudents()
-      setStudents(response.data.data || [])
+      const response = await adminAPI.getStudents();
+      setStudents(response.data.data || []);
     } catch (error) {
-      toast.error('Lỗi khi tải danh sách học sinh')
-      console.error(error)
+      toast.error("Lỗi khi tải danh sách học sinh");
+      console.error(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
-    return <div className="text-center py-8">Đang tải...</div>
+    return <div className="text-center py-8">Đang tải...</div>;
   }
 
   return (
@@ -59,7 +59,10 @@ export default function StudentsPage() {
             </thead>
             <tbody>
               {students.map((student) => (
-                <tr key={student.student_id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={student.student_id}
+                  className="border-b hover:bg-gray-50"
+                >
                   <td className="py-3 px-4">{student.full_name}</td>
                   <td className="py-3 px-4">{student.cccd}</td>
                   <td className="py-3 px-4">{student.school_name}</td>
@@ -67,11 +70,11 @@ export default function StudentsPage() {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         student.is_active
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {student.is_active ? 'Hoạt động' : 'Vô hiệu'}
+                      {student.is_active ? "Hoạt động" : "Vô hiệu"}
                     </span>
                   </td>
                 </tr>
@@ -81,5 +84,5 @@ export default function StudentsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

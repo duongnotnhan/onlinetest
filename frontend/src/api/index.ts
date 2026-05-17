@@ -1,357 +1,446 @@
-import { get } from 'node_modules/axios/index.d.cts'
-import axiosInstance from './client'
+import axiosInstance from "./client";
 
 export const authAPI = {
   register: async (data: {
-    username: string
-    email: string
-    password: string
-    full_name: string
-    phone?: string
-    role: string
+    username: string;
+    email: string;
+    password: string;
+    full_name: string;
+    phone?: string;
+    role: string;
   }) => {
-    return axiosInstance.post('/auth/register', data)
+    return axiosInstance.post("/auth/register", data);
   },
 
-  login: async (cccd: string, password: string, role: 'student' | 'teacher' | 'admin', twoFaCode?: string) => {
-    return axiosInstance.post('/auth/login', {
+  login: async (
+    cccd: string,
+    password: string,
+    role: "student" | "teacher" | "admin",
+    twoFaCode?: string,
+  ) => {
+    return axiosInstance.post("/auth/login", {
       cccd,
       password,
       role,
       two_fa_code: twoFaCode,
-    })
+    });
   },
 
   refreshToken: async () => {
-    return axiosInstance.post('/auth/refresh')
+    return axiosInstance.post("/auth/refresh");
   },
 
   setupTwoFA: async () => {
-    return axiosInstance.post('/auth/setup-2fa')
+    return axiosInstance.post("/auth/setup-2fa");
   },
 
   verifyTwoFA: async (secret: string, otp: string) => {
-    return axiosInstance.post('/auth/verify-2fa', { secret, otp })
+    return axiosInstance.post("/auth/verify-2fa", { secret, otp });
   },
 
   changePassword: async (oldPassword: string, newPassword: string) => {
-    return axiosInstance.post('/auth/change-password', {
+    return axiosInstance.post("/auth/change-password", {
       old_password: oldPassword,
       new_password: newPassword,
-    })
+    });
   },
 
-  firstLoginChangePassword: async (oldPassword: string, newPassword: string) => {
-    return axiosInstance.post('/auth/first-login-change-password', {
+  firstLoginChangePassword: async (
+    oldPassword: string,
+    newPassword: string,
+  ) => {
+    return axiosInstance.post("/auth/first-login-change-password", {
       old_password: oldPassword,
       new_password: newPassword,
-    })
+    });
   },
-}
+};
 
 export const adminAPI = {
   getDashboard: async () => {
-    return axiosInstance.get('/admin/dashboard')
+    return axiosInstance.get("/admin/dashboard");
   },
 
   getTeachers: async () => {
-    return axiosInstance.get('/admin/teachers')
+    return axiosInstance.get("/admin/teachers");
   },
 
   createTeacher: async (teacher: any) => {
-    return axiosInstance.post('/admin/teachers', teacher)
+    return axiosInstance.post("/admin/teachers", teacher);
   },
 
   approveTeacher: async (teacherId: number) => {
-    return axiosInstance.post(`/admin/teachers/${teacherId}/approve`)
+    return axiosInstance.post(`/admin/teachers/${teacherId}/approve`);
   },
 
   rejectTeacher: async (teacherId: number, reason: string) => {
-    return axiosInstance.post(`/admin/teachers/${teacherId}/reject`, { reason })
+    return axiosInstance.post(`/admin/teachers/${teacherId}/reject`, {
+      reason,
+    });
   },
 
   getSchools: async () => {
-    return axiosInstance.get('/admin/schools')
+    return axiosInstance.get("/admin/schools");
   },
 
   addSchool: async (school: any) => {
-    return axiosInstance.post('/admin/schools', school)
+    return axiosInstance.post("/admin/schools", school);
   },
 
   getProvinces: async () => {
-    return axiosInstance.get('/admin/locations/provinces')
+    return axiosInstance.get("/admin/locations/provinces");
   },
 
   getWards: async (provinceId?: number) => {
-    return axiosInstance.get('/admin/locations/wards', {
+    return axiosInstance.get("/admin/locations/wards", {
       params: provinceId ? { province_id: provinceId } : undefined,
-    })
+    });
   },
 
   getStudents: async () => {
-    return axiosInstance.get('/admin/students')
+    return axiosInstance.get("/admin/students");
   },
 
   getExamSessions: async () => {
-    return axiosInstance.get('/admin/exam-sessions')
+    return axiosInstance.get("/admin/exam-sessions");
   },
 
   createExamSession: async (session: any) => {
-    return axiosInstance.post('/admin/exam-sessions', session)
+    return axiosInstance.post("/admin/exam-sessions", session);
   },
 
   publishExamSession: async (sessionId: number) => {
-    return axiosInstance.post(`/admin/exam-sessions/${sessionId}/publish`)
+    return axiosInstance.post(`/admin/exam-sessions/${sessionId}/publish`);
   },
 
   getExamSchedules: async (sessionId?: number) => {
-    return axiosInstance.get('/admin/exam-schedules', {
+    return axiosInstance.get("/admin/exam-schedules", {
       params: sessionId ? { exam_session_id: sessionId } : undefined,
-    })
+    });
   },
 
   createExamSchedule: async (schedule: any) => {
-    return axiosInstance.post('/admin/exam-schedules', schedule)
+    return axiosInstance.post("/admin/exam-schedules", schedule);
   },
 
   getSubjects: async () => {
-    return axiosInstance.get('/admin/subjects')
+    return axiosInstance.get("/admin/subjects");
   },
 
   getResults: async (sessionId?: number) => {
-    return axiosInstance.get('/admin/results', {
+    return axiosInstance.get("/admin/results", {
       params: sessionId ? { exam_session_id: sessionId } : undefined,
-    })
+    });
   },
 
   publishResults: async (sessionId: number) => {
-    return axiosInstance.post(`/admin/exam-sessions/${sessionId}/publish-results`)
+    return axiosInstance.post(
+      `/admin/exam-sessions/${sessionId}/publish-results`,
+    );
   },
-  
+
   // Grading Assignments
   getEssayAssignments: async (sessionId?: number) => {
-    return axiosInstance.get('/admin/essay-assignments', { params: { exam_session_id: sessionId } })
+    return axiosInstance.get("/admin/essay-assignments", {
+      params: { exam_session_id: sessionId },
+    });
   },
   getEligibleGraders: async () => {
-    return axiosInstance.get('/admin/graders')
+    return axiosInstance.get("/admin/graders");
   },
-  assignGrader: async (payload: { response_id: number, grader_id: number, grading_order: number }) => {
-    return axiosInstance.post('/admin/essay-assignments/assign', payload)
+  assignGrader: async (payload: {
+    response_id: number;
+    grader_id: number;
+    grading_order: number;
+  }) => {
+    return axiosInstance.post("/admin/essay-assignments/assign", payload);
   },
   removeGraderAssignment: async (gradeId: number) => {
-    return axiosInstance.delete(`/admin/essay-assignments/${gradeId}`)
+    return axiosInstance.delete(`/admin/essay-assignments/${gradeId}`);
   },
-}
+};
 
 export const examAPI = {
   getPapers: async (sessionId?: number) => {
-    return axiosInstance.get('/exam/exam-papers', {
+    return axiosInstance.get("/exam/exam-papers", {
       params: sessionId ? { exam_session_id: sessionId } : undefined,
-    })
+    });
   },
 
   createPaper: async (paper: any) => {
-    return axiosInstance.post('/exam/exam-papers', paper)
+    return axiosInstance.post("/exam/exam-papers", paper);
   },
 
   getPaperDetail: async (paperId: number) => {
-    return axiosInstance.get(`/exam/exam-papers/${paperId}`)
+    return axiosInstance.get(`/exam/exam-papers/${paperId}`);
   },
 
   updatePaper: async (paperId: number, paper: any) => {
-    return axiosInstance.put(`/exam/exam-papers/${paperId}`, paper)
+    return axiosInstance.put(`/exam/exam-papers/${paperId}`, paper);
   },
 
   addQuestion: async (paperId: number, question: any) => {
-    return axiosInstance.post(`/exam/exam-papers/${paperId}/questions`, question)
+    return axiosInstance.post(
+      `/exam/exam-papers/${paperId}/questions`,
+      question,
+    );
   },
 
   updateQuestion: async (questionId: number, question: any) => {
-    return axiosInstance.put(`/exam/questions/${questionId}`, question)
+    return axiosInstance.put(`/exam/questions/${questionId}`, question);
   },
 
   deleteQuestion: async (questionId: number) => {
-    return axiosInstance.delete(`/exam/questions/${questionId}`)
+    return axiosInstance.delete(`/exam/questions/${questionId}`);
   },
 
   generateVersions: async (paperId: number, numVersions: number) => {
-    return axiosInstance.post(`/exam/exam-papers/${paperId}/generate-versions`, {
-      num_versions: numVersions,
-    })
+    return axiosInstance.post(
+      `/exam/exam-papers/${paperId}/generate-versions`,
+      {
+        num_versions: numVersions,
+      },
+    );
   },
 
   finalizePaper: async (paperId: number) => {
-    return axiosInstance.post(`/exam/exam-papers/${paperId}/finalize`)
+    return axiosInstance.post(`/exam/exam-papers/${paperId}/finalize`);
   },
-  
+
   addSubsection: async (paperId: number, data: any) => {
-    return axiosInstance.post(`/exam/exam-papers/${paperId}/subsections`, data)
+    return axiosInstance.post(`/exam/exam-papers/${paperId}/subsections`, data);
   },
-  
+
   updateSubsection: async (sectionId: number, data: any) => {
-    return axiosInstance.put(`/exam/subsections/${sectionId}`, data)
+    return axiosInstance.put(`/exam/subsections/${sectionId}`, data);
   },
-  
+
   deleteSubsection: async (sectionId: number) => {
-    return axiosInstance.delete(`/exam/subsections/${sectionId}`)
+    return axiosInstance.delete(`/exam/subsections/${sectionId}`);
   },
-  importQuestionsCsv: async (paperId: number, part: string, questionType: string, file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('part', part)
-    formData.append('question_type', questionType)
-    return axiosInstance.post(`/exam/exam-papers/${paperId}/import-questions`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+  importQuestionsCsv: async (
+    paperId: number,
+    part: string,
+    questionType: string,
+    file: File,
+  ) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("part", part);
+    formData.append("question_type", questionType);
+    return axiosInstance.post(
+      `/exam/exam-papers/${paperId}/import-questions`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
   },
-  
+
   reorderQuestions: async (paperId: number, orderedQuestionIds: number[]) => {
     return axiosInstance.post(`/exam/exam-papers/${paperId}/reorder`, {
-      ordered_question_ids: orderedQuestionIds
-    })
+      ordered_question_ids: orderedQuestionIds,
+    });
   },
-}
+};
 
 export const teacherAPI = {
   // Student Management (GVQL)
   getStudents: async () => {
-    return axiosInstance.get('/teacher/students')
+    return axiosInstance.get("/teacher/students");
   },
 
   addStudent: async (student: any) => {
-    return axiosInstance.post('/teacher/students', student)
+    return axiosInstance.post("/teacher/students", student);
   },
 
   updateStudent: async (studentId: number, student: any) => {
-    return axiosInstance.put(`/teacher/students/${studentId}`, student)
+    return axiosInstance.put(`/teacher/students/${studentId}`, student);
   },
 
   deleteStudent: async (studentId: number) => {
-    return axiosInstance.delete(`/teacher/students/${studentId}`)
+    return axiosInstance.delete(`/teacher/students/${studentId}`);
   },
 
   resetStudentPassword: async (studentId: number) => {
-    return axiosInstance.post(`/teacher/students/${studentId}/reset-password`)
+    return axiosInstance.post(`/teacher/students/${studentId}/reset-password`);
   },
 
   // Exam Management (for exams created by teacher)
   getExams: async () => {
-    return axiosInstance.get('/teacher/exams')
+    return axiosInstance.get("/teacher/exams");
   },
 
   createExam: async (exam: any) => {
-    return axiosInstance.post('/teacher/exams', exam)
+    return axiosInstance.post("/teacher/exams", exam);
   },
 
   getExamDetail: async (examId: number) => {
-    return axiosInstance.get(`/teacher/exams/${examId}`)
+    return axiosInstance.get(`/teacher/exams/${examId}`);
   },
 
   updateExam: async (examId: number, exam: any) => {
-    return axiosInstance.put(`/teacher/exams/${examId}`, exam)
+    return axiosInstance.put(`/teacher/exams/${examId}`, exam);
   },
 
   addQuestion: async (examId: number, question: any) => {
-    return axiosInstance.post(`/teacher/exams/${examId}/questions`, question)
+    return axiosInstance.post(`/teacher/exams/${examId}/questions`, question);
   },
 
   // Dashboard
   getDashboard: async () => {
-    return axiosInstance.get('/teacher/dashboard')
+    return axiosInstance.get("/teacher/dashboard");
   },
 
   // Grading
   getStudentsToGrade: async () => {
-    return axiosInstance.get('/teacher/grade-students')
+    return axiosInstance.get("/teacher/grade-students");
   },
 
   gradeEssay: async (responseId: number, score: number, feedback: string) => {
     return axiosInstance.post(`/teacher/grade/${responseId}`, {
       score,
       feedback,
-    })
+    });
   },
 
   // Import students from CSV file
   importStudents: async (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return axiosInstance.post('/teacher/students/import', formData, {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosInstance.post("/teacher/students/import", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
-    })
+    });
   },
 
   getSchoolResults: async (schoolId: number) => {
-    return axiosInstance.get(`/teacher/school-results/${schoolId}`)
+    return axiosInstance.get(`/teacher/school-results/${schoolId}`);
   },
-  
+
   getMySchoolId: async (userId: number) => {
-    const response = await axiosInstance.get(`/teacher/school-id/${userId}`)
-    return response.data.school_id
-  }
-}
+    const response = await axiosInstance.get(`/teacher/school-id/${userId}`);
+    return response.data.school_id;
+  },
+};
 
 export const studentAPI = {
   getDashboard: async () => {
-    return axiosInstance.get('/student/dashboard')
+    return axiosInstance.get("/student/dashboard");
   },
   getExams: async () => {
-    return axiosInstance.get('/student/exam-schedule')
+    return axiosInstance.get("/student/exam-schedule");
   },
   startExam: async (scheduleId: number) => {
-    return axiosInstance.post(`/student/exam-attempts/${scheduleId}/start`)
+    return axiosInstance.post(`/student/exam-attempts/${scheduleId}/start`);
   },
   getExamPaper: async (attemptId: number) => {
-    return axiosInstance.get(`/student/exam-attempts/${attemptId}/paper`)
+    return axiosInstance.get(`/student/exam-attempts/${attemptId}/paper`);
   },
-  submitAnswer: async (attemptId: number, questionId: number, answer: any, track?: string) => {
+  submitAnswer: async (
+    attemptId: number,
+    questionId: number,
+    answer: any,
+    track?: string,
+  ) => {
     const payload: any = {
       question_id: questionId,
       student_answer: answer,
-    }
+    };
     if (track) payload.selected_informatics_track = track;
-    return axiosInstance.post(`/exam/exam-attempts/${attemptId}/responses`, payload)
+    return axiosInstance.post(
+      `/exam/exam-attempts/${attemptId}/responses`,
+      payload,
+    );
   },
   submitExam: async (attemptId: number) => {
-    return axiosInstance.post(`/exam/exam-attempts/${attemptId}/submit`)
+    return axiosInstance.post(`/exam/exam-attempts/${attemptId}/submit`);
   },
   getAttemptStatus: async (attemptId: number) => {
-    return axiosInstance.get(`/exam/exam-attempts/${attemptId}/status`)
+    return axiosInstance.get(`/exam/exam-attempts/${attemptId}/status`);
   },
   getResults: async () => {
-    return axiosInstance.get('/student/results')
+    return axiosInstance.get("/student/results");
   },
   getResult: async (resultId: number) => {
-    return axiosInstance.get(`/student/results/${resultId}`)
+    return axiosInstance.get(`/student/results/${resultId}`);
   },
-}
+};
 
 export const uploadAPI = {
   uploadImage: async (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return axiosInstance.post('/upload/image', formData, {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosInstance.post("/upload/image", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
-    })
+    });
   },
 
   deleteImage: async (filename: string) => {
-    return axiosInstance.delete(`/upload/image/${filename}`)
+    return axiosInstance.delete(`/upload/image/${filename}`);
   },
-}
+};
 
 export const gradingAPI = {
   getEssays: async (params?: any) => {
-    return axiosInstance.get('/grading/essays', { params })
+    return axiosInstance.get("/grading/essays", { params });
   },
   getEssayDetail: async (essayGradeId: number) => {
-    return axiosInstance.get(`/grading/essays/${essayGradeId}`)
+    return axiosInstance.get(`/grading/essays/${essayGradeId}`);
   },
-  submitGrade: async (essayGradeId: number, score: number, feedback: string) => {
-    return axiosInstance.post(`/grading/essays/${essayGradeId}/grade`, { score, feedback })
-  }
-}
+  submitGrade: async (
+    essayGradeId: number,
+    score: number,
+    feedback: string,
+  ) => {
+    return axiosInstance.post(`/grading/essays/${essayGradeId}/grade`, {
+      score,
+      feedback,
+    });
+  },
+};
+
+export const exportAPI = {
+  exportStudents: async (exportType: "csv" | "xlsx", filters?: any) => {
+    return axiosInstance.post(
+      `/export/data/students/${exportType}`,
+      filters || {},
+      {
+        responseType: "blob",
+      },
+    );
+  },
+
+  exportResults: async (
+    exportType: "csv" | "xlsx",
+    filters: { exam_session_id: number; subject_id?: number },
+  ) => {
+    return axiosInstance.post(`/export/data/results/${exportType}`, filters, {
+      responseType: "blob",
+    });
+  },
+
+  exportSchoolResults: async (
+    exportType: "csv" | "xlsx",
+    filters: { exam_session_id: number },
+  ) => {
+    return axiosInstance.post(
+      `/export/data/school_results/${exportType}`,
+      filters,
+      {
+        responseType: "blob",
+      },
+    );
+  },
+
+  downloadTemplate: async (
+    templateType: "student" | "question_mc" | "question_tf" | "question_sa",
+  ) => {
+    return axiosInstance.get(`/export/template/${templateType}`, {
+      responseType: "blob",
+    });
+  },
+};

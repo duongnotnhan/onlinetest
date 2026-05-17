@@ -435,9 +435,9 @@ def import_students():
                 if row.get('tuchon1') and not row.get('tuchon2'):
                     raise ValueError('Môn tự chọn 2 không được để trống. Nếu thí sinh chỉ đăng ký 1 môn tự chọn, hãy để môn tự chọn 2 là MT.')
                 
-                if row.get('tuchon1') and row['tuchon1'] not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
+                if row.get('tuchon1') and row['tuchon1'].upper() not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
                     raise ValueError('Môn tự chọn 1 không hợp lệ.')
-                if row.get('tuchon2') and row['tuchon2'] not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
+                if row.get('tuchon2') and row['tuchon2'].upper() not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
                     raise ValueError('Môn tự chọn 2 không hợp lệ.')
                 
                 if row.get('tuchon1') == 'MT' and row.get('tuchon2') and row['tuchon2'] != 'MT':
@@ -454,7 +454,7 @@ def import_students():
                     username=row['cccd'],
                     email=None,
                     phone=row['phone'],
-                    full_name=row['full_name'],
+                    full_name=row['full_name'].upper(),
                     role='student',
                     school_id=school_id,
                     is_active=True,
@@ -473,12 +473,12 @@ def import_students():
                     school_id=school_id,
                     student_code=student_code,
                     cccd=row['cccd'],
-                    full_name=row['full_name'],
+                    full_name=row['full_name'].upper(),
                     gender=gender,
                     date_of_birth=date_of_birth,
                     address=row['address'],
                     phone=row['phone'],
-                    class_name=row['class_name'],
+                    class_name=row['class_name'].upper(),
                     permanent_address=row.get('permanent_address', row['address'])
                 )
                 

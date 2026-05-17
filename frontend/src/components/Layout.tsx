@@ -1,9 +1,9 @@
-import { ReactNode } from 'react'
-import Navbar from './Navbar'
-import Sidebar from './Sidebar'
+import { ReactNode } from "react";
+import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -18,11 +18,9 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Khung nội dung trung tâm: Bọc đệm lề (padding) chuẩn và giới hạn max-w-7xl để các hộp (box) hiển thị rõ ràng, không bị dính lề */}
         <main className="flex-1 overflow-y-auto w-full p-4 sm:p-6 md:p-8 transition-all duration-300">
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>
-  )
+  );
 }
