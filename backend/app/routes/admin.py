@@ -1,5 +1,5 @@
 """Admin routes - QTV (Quản Trị Viên)"""
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from functools import wraps
@@ -11,6 +11,7 @@ from app.models import (
     Student, ExamAttempt, StudentResponse, Province, District
 )
 from app.utils.validators import validate_date_format
+from app.services.exam_service import ExamScoringService
 from . import admin_bp
 
 
@@ -1077,3 +1078,17 @@ def remove_grader_assignment(grade_id):
     db.session.delete(grade)
     db.session.commit()
     return jsonify({'success': True}), 200
+
+# ============================================================
+@admin_bp.route('/force-submit-overdue', methods=['POST'])
+@jwt_required()
+@admin_required
+def force_submit_overdue():
+    success, result = ExamScoringService.auto_submit_overdue_exams()
+    if success:
+        return jsonify({
+            'success': True, 
+            'message': f'Đã quét và tự động thu {result} bài thi quá hạn.'
+        }), 200
+        
+    return jsonify({'error': result}), 400

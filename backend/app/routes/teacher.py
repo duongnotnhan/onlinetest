@@ -8,11 +8,22 @@ import io
 
 from app import db
 from app.models import (
-    User, Teacher, Student, School, ExamSession, StudentSubjectRegistration,
+    ExamResult, User, Teacher, Student, School, ExamSession, StudentSubjectRegistration,
     MakeupRegistration, Subject, District, Province
 )
 from app.utils.validators import validate_cccd, validate_password
 from . import teacher_bp
+
+def validate_date(date_str, pattern=r'^\d{4}-\d{2}-\d{2}$'):
+    """Validate date string with regex pattern (default YYYY-MM-DD)"""
+    import re
+    if not re.match(pattern, date_str):
+        return False
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 
 def teacher_required(f):
@@ -48,6 +59,56 @@ def get_school_id_for_user(user):
     else:
         teacher = Teacher.query.filter_by(user_id=user.user_id).first()
         return teacher.school_id if teacher else None
+    
+@teacher_bp.route('/school-id/<int:teacher_id>', methods=['GET'])
+@jwt_required()
+@teacher_required
+def get_school_id(teacher_id):
+    """Endpoint để frontend lấy school_id của giáo viên hiện tại"""
+    try:
+        user = User.query.get(teacher_id)
+        school_id = get_school_id_for_user(user)
+        if not school_id:
+            return jsonify({'error': 'School not found for user'}), 404
+        return jsonify({'school_id': school_id}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@teacher_bp.route('/school-results/<int:school_id>', methods=['GET'])
+@jwt_required()
+@teacher_required
+def get_school_results(school_id):
+    """Endpoint để giáo viên xem kết quả của trường mình"""
+    try:
+        results = []
+        sessions = ExamSession.query.filter_by(is_published=True).all()
+        for session in sessions:
+            session_results = db.session.query(
+                Student.full_name,
+                Student.class_name,
+                Student.cccd,
+                Subject.subject_name,
+                ExamResult.score,
+                ExamResult.status
+            ).join(StudentSubjectRegistration, Student.student_id == StudentSubjectRegistration.student_id
+            ).join(Subject, StudentSubjectRegistration.subject_id == Subject.subject_id
+            ).join(ExamResult, (ExamResult.student_id == Student.student_id) & (ExamResult.subject_id == Subject.subject_id)
+            ).filter(Student.school_id == school_id, StudentSubjectRegistration.exam_session_id == session.exam_session_id).all()
+            
+            for full_name, class_name, cccd, subject_name, score, status in session_results:
+                results.append({
+                    'student_name': full_name,
+                    'class_name': class_name,
+                    'student_cccd': cccd,
+                    'subject_name': subject_name,
+                    'score': score,
+                    'session_name': session.session_name,
+                    'status': status
+                })
+        
+        return jsonify({'results': results}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @teacher_bp.route('/profile', methods=['GET'])
@@ -306,6 +367,10 @@ def delete_student(student_id):
 @teacher_required
 def import_students():
     """Import students from CSV and register subjects automatically"""
+    import csv
+    import io
+    from datetime import datetime
+    
     try:
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
@@ -325,35 +390,69 @@ def import_students():
                 return jsonify({'error': 'Chưa có kỳ thi nào được tạo trên hệ thống'}), 400
             exam_session_id = latest_session.exam_session_id
             
-        stream = io.StringIO(file.stream.read().decode('utf-8-sig'), newline=None)
-        csv_data = csv.DictReader(stream)
+        # Đọc nội dung file
+        content = file.stream.read().decode('utf-8-sig')
+        stream = io.StringIO(content, newline=None)
+        
+        # Tự động nhận diện dấu phân cách (dấu phẩy hoặc dấu chấm phẩy)
+        try:
+            dialect = csv.Sniffer().sniff(content[:1024], delimiters=',;')
+            csv_data = csv.DictReader(stream, dialect=dialect)
+        except csv.Error:
+            stream.seek(0)
+            csv_data = csv.DictReader(stream, delimiter=';')
         
         imported = 0
         failed = 0
         errors = []
         
-        required_fields = ['cccd', 'full_name', 'gender', 'date_of_birth', 'address', 'phone', 'class_name']
+        required_fields = ['cccd', 'full_name', 'gender', 'date_of_birth', 'address', 'phone', 'class_name', 'tuchon1', 'tuchon2']
         
         for row_num, row in enumerate(csv_data, start=2):
             try:
                 for field in required_fields:
                     if not row.get(field):
                         raise ValueError(f'Missing {field}')
-                        
-                if not validate_cccd(row['cccd']):
-                    raise ValueError('Invalid CCCD format')
+                
+                # Tạm thời hủy xác minh CCCD vì vẫn có trường hợp sử dụng mã định danh có định dạng khác
+                # if not validate_cccd(row['cccd']):
+                #     raise ValueError('Số CCCD không hợp lệ.')
                     
                 existing = Student.query.filter_by(cccd=row['cccd']).first()
                 if existing:
-                    raise ValueError('Student with this CCCD already exists')
-                    
-                date_of_birth = datetime.strptime(row['date_of_birth'], '%Y-%m-%d').date()
+                    raise ValueError('Mã định danh/CCCD đã tồn tại trong hệ thống.')
                 
-                temp_password = f"Temp@{row['cccd'][-6:]}"
+                gender = None
+                if row.get('gender'):
+                    if row['gender'].lower() not in ['male', 'female', 'nam', 'nu', 'nữ']:
+                        raise ValueError('Giới tính phải là Male, Female hoặc Nam, Nữ.')
+                    gender = 'male' if row['gender'].lower() in ['male', 'nam'] else 'female'
+                else:
+                    raise ValueError('Giới tính không được để trống.')
+                
+                if not row.get('tuchon1'):
+                    raise ValueError('Môn tự chọn 1 không được để trống.')
+                if row.get('tuchon1') and not row.get('tuchon2'):
+                    raise ValueError('Môn tự chọn 2 không được để trống. Nếu thí sinh chỉ đăng ký 1 môn tự chọn, hãy để môn tự chọn 2 là MT.')
+                
+                if row.get('tuchon1') and row['tuchon1'] not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
+                    raise ValueError('Môn tự chọn 1 không hợp lệ.')
+                if row.get('tuchon2') and row['tuchon2'] not in ['VAT_LI', 'HOA_HO', 'SINH_H', 'DIA_LI', 'LICH_S', 'GDKTVL', 'TIN_HO', 'CNNG', 'CNNN', 'TIENG_ANH', 'TIENG_RU', 'TIENG_PH', 'TIENG_TR', 'TIENG_DU', 'TIENG_NH', 'TIENG_HAN', 'MT']:
+                    raise ValueError('Môn tự chọn 2 không hợp lệ.')
+                
+                if row.get('tuchon1') == 'MT' and row.get('tuchon2') and row['tuchon2'] != 'MT':
+                    raise ValueError('Nếu môn tự chọn 1 là MT thì môn tự chọn 2 phải là MT. Hoặc nếu thí sinh chỉ đăng ký 1 môn tự chọn, phải để tuchon1 là mã môn tự chọn và tuchon2 là MT.')
+                
+                if row.get('date_of_birth') and not validate_date(row['date_of_birth'], pattern=r'^\d{4}-\d{2}-\d{2}$'):
+                    raise ValueError('Ngày sinh phải có định dạng YYYY-MM-DD.')
+                if row.get('date_of_birth'):
+                    date_of_birth = datetime.strptime(row['date_of_birth'], '%Y-%m-%d').date()
+                
+                temp_password = f"{row['full_name'][:4].upper()}@{row['cccd'][-6:]}"
                 
                 new_user = User(
                     username=row['cccd'],
-                    email=row.get('email'),
+                    email=None,
                     phone=row['phone'],
                     full_name=row['full_name'],
                     role='student',
@@ -375,7 +474,7 @@ def import_students():
                     student_code=student_code,
                     cccd=row['cccd'],
                     full_name=row['full_name'],
-                    gender=row['gender'],
+                    gender=gender,
                     date_of_birth=date_of_birth,
                     address=row['address'],
                     phone=row['phone'],
@@ -387,9 +486,9 @@ def import_students():
                 db.session.flush()
 
                 subject_codes = ['TOAN', 'NVVAN']
-                if row.get('elective_1'): subject_codes.append(row['elective_1'])
-                if row.get('elective_2'): subject_codes.append(row['elective_2'])
-                
+                if row.get('tuchon1'): subject_codes.append(row['tuchon1'])
+                if row.get('tuchon2'): subject_codes.append(row['tuchon2'])
+
                 for code in subject_codes:
                     subj = Subject.query.filter_by(subject_code=code).first()
                     if subj:
@@ -414,7 +513,8 @@ def import_students():
                 failed += 1
                 errors.append({
                     'row': row_num,
-                    'error': str(e)
+                    'error': "Gặp lỗi khi xử lý dòng này. Xem chi tiết lỗi bên cạnh hoặc liên hệ Quản trị viên nếu bạn nghĩ đây là lỗi hệ thống.",
+                    'details': str(e)
                 })
 
         return jsonify({
@@ -443,7 +543,7 @@ def reset_student_password(student_id):
         if not student or student.school_id != school_id:
             return jsonify({'error': 'Student not found'}), 404
         
-        temp_password = f"Temp@{student.cccd[-6:]}"
+        temp_password = f"{student.full_name[:4].upper()}@{student.cccd[-6:]}"
         
         student_user = User.query.get(student.user_id)
         student_user.set_password(temp_password)

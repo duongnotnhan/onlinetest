@@ -646,7 +646,7 @@ def get_results():
                 'result_id': result.result_id,
                 'session_name': session.session_name if session else None,
                 'subject_name': subject.subject_name if subject else None,
-                'score': float(result.score) if result.score else None,
+                'score': float(result.score) if result.score or result.score == '0' or result.score == 0 else None,
                 'grade': result.grade,
                 'status': result.status,
                 'published_date': result.published_date.isoformat() if result.published_date else None

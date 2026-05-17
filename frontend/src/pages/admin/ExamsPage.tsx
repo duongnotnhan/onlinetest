@@ -89,11 +89,9 @@ function structureForSubject(subjectName?: string, subjectCode?: string) {
   ]
 }
 
-// Hàm sinh băng rôn chỉ dẫn thông minh, giải quyết triệt để lỗi tính toán thừa dải câu hỏi
 function generateInstructionBanner(subjectName: string, questions: any[], customType?: string, isPartLevel: boolean = false) {
   if (!questions || questions.length === 0) return null;
   
-  // Trích xuất dải số thứ tự câu hỏi hợp lệ
   const nums = questions.map(q => q.question_number).filter(n => n !== undefined);
   if (nums.length === 0) return null;
   const minQ = Math.min(...nums);
@@ -113,7 +111,6 @@ function generateInstructionBanner(subjectName: string, questions: any[], custom
     return `Choose the letter A, B, C, or D to indicate the best answer to each of the following questions from ${minQ} to ${maxQ}.`;
   }
 
-  // Tinh chỉnh cấu trúc nhãn chuẩn xác cho các bộ môn dùng chung
   const qSample = questions[0];
   if (qSample?.type === 'true_false') {
     return `Thí sinh trả lời từ câu ${minQ} đến câu ${maxQ}. Trong mỗi ý a), b), c), d) ở mỗi câu, thí sinh chọn đúng hoặc sai.`;
@@ -611,69 +608,67 @@ export default function ExamsPage() {
     }));
 
     if (isPreviewMode) {
-        return (
-          <div className="max-w-5xl mx-auto p-6 md:p-8 bg-white shadow-sm my-8 rounded-xl border border-slate-200">
-             <div className="border-b pb-4 mb-6 flex justify-between items-center">
-                <div>
-                   <h2 className="text-2xl font-black text-slate-900">XEM TRƯỚC: MÃ ĐỀ {paperDetail.paper_code}</h2>
-                   <p className="text-sm text-slate-500 font-medium mt-1">Môn thi: {paperDetail.subject_name}</p>
-                </div>
-                <button onClick={() => setIsPreviewMode(false)} className="btn-primary text-xs">Thoát chế độ xem</button>
-             </div>
-             
-             {paperDetail.reading_material && (
-               <div className="mb-6 bg-yellow-50 p-5 rounded-xl border border-yellow-100 shadow-sm">
-                  <h3 className="text-sm font-bold text-yellow-800 uppercase tracking-wider mb-2">Ngữ liệu chung:</h3>
-                  <MarkdownContent content={paperDetail.reading_material} />
-               </div>
-             )}
-
-             <div className="space-y-8">
-                {paperStructure.map((part) => {
-                   const pBlocks: any[] = [];
-                   subsectionsList
-                     .filter(s => (s.part === 'reading' ? 'part1' : (s.part === 'writing' ? 'part2' : s.part)) === part.key)
-                     .forEach(sub => {
-                        const subQs = mappedQuestions.filter(q => String(q.subsection_id) === String(sub.subsection_id));
-                        const minQ = subQs.length > 0 ? Math.min(...subQs.map(q => q.question_number)) : 9999;
-                        pBlocks.push({ type: 'subsection', data: sub, questions: subQs, order: minQ });
-                     });
-                   
-                   // Lọc ra các câu hỏi lẻ luồng tự do
-                   const looseQs = mappedQuestions.filter(q => q.mappedPart === part.key && !q.subsection_id);
-                   looseQs.forEach(q => { pBlocks.push({ type: 'loose', data: q, questions: [q], order: q.question_number }); });
-                   pBlocks.sort((a, b) => a.order - b.order);
-                   if (pBlocks.length === 0) return null;
-
-                   // Tính toán hướng dẫn thông minh: Phần (Part) CHỈ GỒM các câu tự do trực tiếp
-                   const partInstruction = generateInstructionBanner(paperDetail.subject_name, looseQs, undefined, true);
-
-                   return (
-                     <div key={`prev-part-${part.key}`} className="space-y-5 pt-6 border-t border-slate-200">
-                        <h3 className="font-black text-lg text-blue-900 uppercase tracking-wide">{part.label}</h3>
-                        {partInstruction && <p className="text-sm font-bold text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm">{partInstruction}</p>}
-                        
-                        {pBlocks.map((b, idx) => {
-                           if (b.type === 'subsection') {
-                             const subInstruction = generateInstructionBanner(paperDetail.subject_name, b.questions, b.data.type);
-                             return (
-                               <div key={`prev-sub-${b.data.subsection_id}`} className="my-5 bg-indigo-50/20 p-5 rounded-xl border border-indigo-100 shadow-sm space-y-4">
-                                  {subInstruction && <p className="text-xs font-bold text-indigo-950 bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">{subInstruction}</p>}
-                                  {b.data.content && <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><MarkdownContent content={b.data.content} /></div>}
-                                  <div className="space-y-4 pl-3 border-l-4 border-indigo-300">
-                                     {b.questions.map((q: any) => renderQuestionBlock(q, false))}
-                                  </div>
-                               </div>
-                             );
-                           }
-                           return <div key={`prev-q-${b.data.question_id}`}>{renderQuestionBlock(b.data, false)}</div>;
-                        })}
-                     </div>
-                   );
-                })}
-             </div>
+      return (
+        <div className="max-w-5xl mx-auto p-6 md:p-8 bg-white shadow-sm my-8 rounded-xl border border-slate-200">
+          <div className="border-b pb-4 mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900">XEM TRƯỚC: MÃ ĐỀ {paperDetail.paper_code}</h2>
+              <p className="text-sm text-slate-500 font-medium mt-1">Môn thi: {paperDetail.subject_name}</p>
+            </div>
+            <button onClick={() => setIsPreviewMode(false)} className="btn-primary text-xs">Thoát chế độ xem</button>
           </div>
-        )
+          
+          {paperDetail.reading_material && (
+            <div className="mb-6 bg-yellow-50 p-5 rounded-xl border border-yellow-100 shadow-sm">
+              <h3 className="text-sm font-bold text-yellow-800 uppercase tracking-wider mb-2">Ngữ liệu chung:</h3>
+              <MarkdownContent content={paperDetail.reading_material} />
+            </div>
+          )}
+
+          <div className="space-y-8">
+            {paperStructure.map((part) => {
+              const pBlocks: any[] = [];
+              subsectionsList
+                .filter(s => (s.part === 'reading' ? 'part1' : (s.part === 'writing' ? 'part2' : s.part)) === part.key)
+                .forEach(sub => {
+                  const subQs = mappedQuestions.filter(q => String(q.subsection_id) === String(sub.subsection_id));
+                  const minQ = subQs.length > 0 ? Math.min(...subQs.map(q => q.question_number)) : 9999;
+                  pBlocks.push({ type: 'subsection', data: sub, questions: subQs, order: minQ });
+                });
+                  
+              const looseQs = mappedQuestions.filter(q => q.mappedPart === part.key && !q.subsection_id);
+              looseQs.forEach(q => { pBlocks.push({ type: 'loose', data: q, questions: [q], order: q.question_number }); });
+              pBlocks.sort((a, b) => a.order - b.order);
+              if (pBlocks.length === 0) return null;
+
+              const partInstruction = generateInstructionBanner(paperDetail.subject_name, looseQs, undefined, true);
+
+              return (
+                <div key={`prev-part-${part.key}`} className="space-y-5 pt-6 border-t border-slate-200">
+                  <h3 className="font-black text-lg text-blue-900 uppercase tracking-wide">{part.label}</h3>
+                  {partInstruction && <p className="text-sm font-bold text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm">{partInstruction}</p>}
+                  
+                  {pBlocks.map((b, idx) => {
+                      if (b.type === 'subsection') {
+                        const subInstruction = generateInstructionBanner(paperDetail.subject_name, b.questions, b.data.type);
+                        return (
+                          <div key={`prev-sub-${b.data.subsection_id}`} className="my-5 bg-indigo-50/20 p-5 rounded-xl border border-indigo-100 shadow-sm space-y-4">
+                            {subInstruction && <p className="text-xs font-bold text-indigo-950 bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">{subInstruction}</p>}
+                            {b.data.content && <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm"><MarkdownContent content={b.data.content} /></div>}
+                            <div className="space-y-4 pl-3 border-l-4 border-indigo-300">
+                                {b.questions.map((q: any) => renderQuestionBlock(q, false))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return <div key={`prev-q-${b.data.question_id}`}>{renderQuestionBlock(b.data, false)}</div>;
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )
     }
 
     const isEnglishSubject = paperSubject?.subject_code === 'NGA_AN' || paperDetail.subject_name.toLowerCase().includes('tiếng anh');
@@ -732,12 +727,11 @@ export default function ExamsPage() {
             subsectionsList
               .filter(s => (s.part === 'reading' ? 'part1' : (s.part === 'writing' ? 'part2' : s.part)) === part.key)
               .forEach(sub => {
-                 const subQs = mappedQuestions.filter(q => String(q.subsection_id) === String(sub.subsection_id));
-                 const minQ = subQs.length > 0 ? Math.min(...subQs.map(q => q.question_number)) : 9999;
-                 blocks.push({ type: 'subsection', data: sub, questions: subQs, order: minQ });
+                const subQs = mappedQuestions.filter(q => String(q.subsection_id) === String(sub.subsection_id));
+                const minQ = subQs.length > 0 ? Math.min(...subQs.map(q => q.question_number)) : 9999;
+                blocks.push({ type: 'subsection', data: sub, questions: subQs, order: minQ });
               });
             
-            // Tách bạch rạch ròi các câu hỏi lẻ độc lập
             const looseQs = mappedQuestions.filter(q => q.mappedPart === part.key && !q.subsection_id);
             looseQs.forEach(q => { blocks.push({ type: 'loose', data: q, questions: [q], order: q.question_number }); });
             blocks.sort((a, b) => a.order - b.order);
@@ -745,7 +739,6 @@ export default function ExamsPage() {
             const isReadingPart = isEnglishSubject && part.key.startsWith('r');
             const customTitlePreset = part.key.startsWith('rc') ? 'Reading Passage' : (part.key.startsWith('rf') ? 'Guided Cloze Passage' : 'Context Setup');
             
-            // Băng rôn trên đầu luồng soạn thảo Phần CHỈ THỂ HIỆN phạm vi của các câu tự do
             const partInstructionBanner = generateInstructionBanner(paperDetail.subject_name, looseQs, undefined, true);
 
             return (
@@ -768,7 +761,7 @@ export default function ExamsPage() {
 
               {partInstructionBanner && (
                 <div className="bg-blue-50/60 px-5 py-3 border-b border-slate-200 text-xs text-blue-950 font-bold italic shadow-sm">
-                  👉 <span className="underline">Chỉ dẫn hệ thống:</span> "{partInstructionBanner}"
+                  <span className="underline">Chỉ dẫn hệ thống:</span> "{partInstructionBanner}"
                 </div>
               )}
 
@@ -812,7 +805,7 @@ export default function ExamsPage() {
 
                                   {generateInstructionBanner(paperDetail.subject_name, block.questions, block.data.type) && (
                                     <p className="text-xs text-indigo-950 font-bold italic bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
-                                      👉 <span className="underline">Chỉ dẫn hệ thống:</span> "{generateInstructionBanner(paperDetail.subject_name, block.questions, block.data.type)}"
+                                      <span className="underline">Chỉ dẫn hệ thống:</span> "{generateInstructionBanner(paperDetail.subject_name, block.questions, block.data.type)}"
                                     </p>
                                   )}
 

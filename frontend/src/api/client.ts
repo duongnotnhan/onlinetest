@@ -13,7 +13,6 @@ const axiosInstance: AxiosInstance = axios.create({
   },
 })
 
-// Tự động gắn token vào mọi Request
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -25,7 +24,6 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Khai báo biến hỗ trợ hàng đợi khi đang refresh token
 let isRefreshing = false
 let failedQueue: any[] = []
 
@@ -40,17 +38,13 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
-// Bắt lỗi Token Hết Hạn ở Response
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as any
     const isLoginRequest = originalRequest?.url?.includes('login')
 
-    // Bắt lỗi 401 (Unauthorized) do hết hạn Token
     if (error.response?.status === 401 && !isLoginRequest && !originalRequest._retry) {
-      
-      // Nếu đang có một tiến trình refresh đang chạy, cho request này vào hàng đợi
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject })
@@ -69,21 +63,19 @@ axiosInstance.interceptors.response.use(
         const refreshToken = useAuthStore.getState().refreshToken
         if (!refreshToken) throw new Error('Không có refresh token')
 
-        // Dùng axios gốc (không dùng axiosInstance) để tránh bị lặp vô hạn vào Interceptor
         const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
           headers: { Authorization: `Bearer ${refreshToken}` }
         })
 
         const newToken = res.data.access_token
-        useAuthStore.getState().setTokens(newToken) // Cập nhật token mới
+        useAuthStore.getState().setTokens(newToken)
         
-        processQueue(null, newToken) // Xả hàng đợi
+        processQueue(null, newToken)
         
         originalRequest.headers['Authorization'] = 'Bearer ' + newToken
-        return axiosInstance(originalRequest) // Chạy lại cái request bị fail lúc đầu
+        return axiosInstance(originalRequest)
 
       } catch (refreshError) {
-        // Nếu xin token mới cũng thất bại (ví dụ: Refresh token cũng hết hạn 30 ngày) -> Logout
         processQueue(refreshError, null)
         useAuthStore.getState().logout()
         if (window.location.pathname !== '/login') {

@@ -405,7 +405,7 @@ class ExamResult(db.Model):
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.subject_id'), nullable=False)
     score = db.Column(db.Numeric(5, 2))
     grade = db.Column(db.String(1))
-    status = db.Column(db.Enum('passed', 'failed'), default='passed')
+    status = db.Column(db.Enum('completed', 'failed'), default='completed')
     published = db.Column(db.Boolean, default=False)
     published_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

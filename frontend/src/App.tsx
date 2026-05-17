@@ -262,14 +262,6 @@ export default function App() {
             }
           />
           <Route
-            path="/student/results"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <ResultsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/student/take-exam/:attemptId"
             element={
               <ProtectedRoute allowedRoles={['student']} hideLayout={true}>

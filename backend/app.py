@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from flask import Flask
+from flask_apscheduler import APScheduler
 import os
 from app import create_app, db
 from dotenv import load_dotenv
@@ -6,6 +8,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = create_app(os.getenv('FLASK_ENV', 'development'))
+
+# ==========================================
+# SCHEDULER SETUP
+# ==========================================
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+@scheduler.task('interval', id='auto_submit_overdue_job', minutes=1)
+def run_auto_submit():
+    with app.app_context():
+        try:
+            from app.services.exam_service import ExamScoringService
+            ExamScoringService.auto_submit_overdue_exams()
+        except Exception as e:
+            print(f"[System Error] Lỗi khi chạy auto submit job: {str(e)}")
+
+scheduler.start()
+# ==========================================
 
 
 @app.shell_context_processor
@@ -46,6 +66,7 @@ def seed_db():
         ('TIENG_DU', 'Tiếng Đức', 'language', 'multiple_choice', 50),
         ('TIENG_NH', 'Tiếng Nhật', 'language', 'multiple_choice', 50),
         ('TIENG_HAN', 'Tiếng Hàn', 'language', 'multiple_choice', 50),
+        ('MT', 'Miễn thi', 'group0', 'multiple_choice', 0)
     ]
     
     for code, name, group, exam_type, duration in subjects_data:
@@ -67,5 +88,6 @@ if __name__ == '__main__':
     app.run(
         host=os.getenv('SERVER_HOST', '0.0.0.0'),
         port=int(os.getenv('SERVER_PORT', 5000)),
-        debug=app.config['DEBUG']
+        debug=app.config['DEBUG'] if os.getenv('DEBUG') == 'True' else False,
+        use_reloader=False
     )

@@ -1,3 +1,4 @@
+import { get } from 'node_modules/axios/index.d.cts'
 import axiosInstance from './client'
 
 export const authAPI = {
@@ -126,7 +127,6 @@ export const adminAPI = {
   publishResults: async (sessionId: number) => {
     return axiosInstance.post(`/admin/exam-sessions/${sessionId}/publish-results`)
   },
-  // ... các hàm adminAPI hiện tại ...
   
   // Grading Assignments
   getEssayAssignments: async (sessionId?: number) => {
@@ -282,6 +282,15 @@ export const teacherAPI = {
       },
     })
   },
+
+  getSchoolResults: async (schoolId: number) => {
+    return axiosInstance.get(`/teacher/school-results/${schoolId}`)
+  },
+  
+  getMySchoolId: async (userId: number) => {
+    const response = await axiosInstance.get(`/teacher/school-id/${userId}`)
+    return response.data.school_id
+  }
 }
 
 export const studentAPI = {

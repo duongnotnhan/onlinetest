@@ -1,6 +1,5 @@
-import React from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { FiLogOut, FiSettings } from 'react-icons/fi'
+import { FiLogOut } from 'react-icons/fi'
 
 export default function Navbar() {
   const { user, logout } = useAuthStore()

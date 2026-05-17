@@ -30,7 +30,7 @@ def create_app(config_name='development'):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     
     # Register blueprints
-    from app.routes import auth_bp, admin_bp, teacher_bp, student_bp, exam_bp, grading_bp, result_bp, upload_bp
+    from app.routes import auth_bp, admin_bp, teacher_bp, student_bp, exam_bp, grading_bp, result_bp, upload_bp, export_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(teacher_bp)
@@ -39,6 +39,7 @@ def create_app(config_name='development'):
     app.register_blueprint(grading_bp)
     app.register_blueprint(result_bp)
     app.register_blueprint(upload_bp)
+    app.register_blueprint(export_bp)
     
     # Error handlers
     @app.errorhandler(404)

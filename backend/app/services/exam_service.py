@@ -234,7 +234,7 @@ class ResultService:
                     result.grade = 'D'
                 else:
                     result.grade = 'F'
-                    result.status = 'failed'
+                result.status = 'completed'
         
         db.session.commit()
 
@@ -841,9 +841,12 @@ class ExamScoringService:
             
             total_score = 0
             correct_count = 0
+            essay_count = 0
             
             for response in responses:
                 question = Question.query.get(response.question_id)
+                if question and question.question_type == 'essay':
+                    essay_count += 1
                 if not question or question.question_type == 'essay':
                     continue
                 if _should_skip_for_informatics(attempt, question):
@@ -858,6 +861,7 @@ class ExamScoringService:
                 response.points_earned = score
                 
             attempt.total_score = total_score
+            attempt.status = 'graded' if essay_count == 0 else 'completed'
             db.session.commit()
             
             return True, {
@@ -867,6 +871,44 @@ class ExamScoringService:
             }
         except Exception as e:
             db.session.rollback()
+            return False, str(e)
+
+    @staticmethod
+    def auto_submit_overdue_exams():
+        from app import db
+        from app.models import ExamAttempt
+        from datetime import datetime, timedelta
+        
+        try:
+            now = datetime.utcnow()
+            ongoing_attempts = ExamAttempt.query.filter_by(status='ongoing', is_submitted=0).all()
+            
+            closed_count = 0
+            grace_period = timedelta(minutes=2) # additional delay
+            
+            for attempt in ongoing_attempts:
+                cutoff_time = None
+                
+                if attempt.end_time:
+                    cutoff_time = attempt.end_time
+                elif attempt.schedule and attempt.schedule.duration_minutes:
+                    cutoff_time = attempt.start_time + timedelta(minutes=attempt.schedule.duration_minutes)
+                
+                if cutoff_time and now > (cutoff_time + grace_period):
+                    attempt.is_submitted = 1
+                    attempt.submitted_time = cutoff_time 
+                    
+                    ExamScoringService.auto_score_multiple_choice(attempt.attempt_id)
+                    closed_count += 1
+                    
+            if closed_count > 0:
+                db.session.commit()
+                print(f"[System] Đã tự động thu và chấm {closed_count} bài thi quá hạn.")
+                
+            return True, closed_count
+        except Exception as e:
+            db.session.rollback()
+            print(f"[System Error] Lỗi tiến trình tự động thu bài: {str(e)}")
             return False, str(e)
 
 def _answer_type_for_question(question_type):
@@ -936,7 +978,9 @@ def _score_response(attempt, question, response):
             return 0, False
             
         expected_label = answer.answer_value
-        generated_paper = GeneratedPaper.query.get(attempt.generated_paper_id)
+        generated_paper = None
+        if attempt.generated_paper_id:
+            generated_paper = GeneratedPaper.query.get(attempt.generated_paper_id)
         paper = question.exam_paper
         
         shuffle_choices = True
@@ -948,7 +992,7 @@ def _score_response(attempt, question, response):
                     shuffle_choices = meta.get('shuffle_choices', True)
                 except: pass
                 
-        if shuffle_choices and paper and paper.randomization_enabled:
+        if shuffle_choices and paper and paper.randomization_enabled and generated_paper:
             choices = AnswerChoice.query.filter_by(question_id=question.question_id).all()
             choice_list = [{'choice_label': c.choice_label} for c in choices]
             

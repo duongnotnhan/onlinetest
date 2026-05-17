@@ -164,28 +164,28 @@ export default function GradingAssignmentsPage() {
       {showModal && targetSlot && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
-             <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg font-bold text-gray-900">Phân Công Giám Khảo {targetSlot.order}</h3>
-                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-red-500"><FiXCircle size={24}/></button>
-             </div>
-             <form onSubmit={handleAssign} className="p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Chọn Giám khảo Ngữ Văn:</label>
-                <select className="input-field mb-4" value={selectedGraderId} onChange={e => setSelectedGraderId(e.target.value)} required>
-                   <option value="">-- Chọn giáo viên --</option>
-                   {gradersList.map(g => {
-                     const isSameSchool = g.school_id === targetSlot.studentSchoolId;
-                     return (
-                       <option key={g.user_id} value={g.user_id} className={isSameSchool ? 'text-red-500 font-bold bg-red-50' : ''}>
-                         {g.full_name} ({g.school_name}) {isSameSchool ? ' ⚠️ Trùng trường' : ''}
-                       </option>
-                     )
-                   })}
-                </select>
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                   <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Hủy</button>
-                   <button type="submit" className="btn-primary" disabled={!selectedGraderId}>Lưu phân công</button>
-                </div>
-             </form>
+            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-900">Phân Công Giám Khảo {targetSlot.order}</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-red-500"><FiXCircle size={24}/></button>
+            </div>
+            <form onSubmit={handleAssign} className="p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Chọn Giám khảo Ngữ Văn:</label>
+              <select className="input-field mb-4" value={selectedGraderId} onChange={e => setSelectedGraderId(e.target.value)} required>
+                  <option value="">-- Chọn giáo viên --</option>
+                  {gradersList.map(g => {
+                    const isSameSchool = g.school_id === targetSlot.studentSchoolId;
+                    return (
+                      <option key={g.user_id} value={g.user_id} className={isSameSchool ? 'text-red-500 font-bold bg-red-50' : ''}>
+                        {g.full_name} ({g.school_name}) {isSameSchool ? 'Trùng trường' : ''}
+                      </option>
+                    )
+                  })}
+              </select>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Hủy</button>
+                  <button type="submit" className="btn-primary" disabled={!selectedGraderId}>Lưu phân công</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

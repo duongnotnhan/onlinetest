@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { teacherAPI } from '@/api'
 import toast from 'react-hot-toast'
 import { FiCalendar, FiUsers, FiAward, FiFileText } from 'react-icons/fi'

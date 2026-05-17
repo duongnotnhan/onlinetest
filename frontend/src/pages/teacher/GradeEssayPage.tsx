@@ -91,13 +91,12 @@ export default function GradeEssayPage() {
         {loading ? <div className="p-8 text-center">Đang tải...</div> : (
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 border-b">
-              <tr><th className="px-4 py-3">Môn thi</th><th className="px-4 py-3 text-center">Câu hỏi số</th><th className="px-4 py-3">Lượt chấm</th><th className="px-4 py-3 text-center">Trạng thái</th><th className="px-4 py-3 text-right">Thao tác</th></tr>
+              <tr><th className="px-4 py-3">Câu hỏi số</th><th className="px-4 py-3">Lượt chấm</th><th className="px-4 py-3 text-center">Trạng thái</th><th className="px-4 py-3 text-right">Thao tác</th></tr>
             </thead>
             <tbody className="divide-y">
               {essays.map(essay => (
                 <tr key={essay.essay_grade_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-blue-800">{essay.subject}</td>
-                  <td className="px-4 py-3 text-center font-bold">Câu {essay.question_number}</td>
+                  <td className="px-4 py-3 font-bold">Câu {essay.question_number}</td>
                   <td className="px-4 py-3"><span className="bg-gray-100 px-2 py-1 rounded">Giám khảo {essay.grader_sequence}</span></td>
                   <td className="px-4 py-3 text-center">
                     {essay.status === 'completed' ? <span className="text-green-600 flex items-center justify-center gap-1"><FiCheckCircle/> {essay.score ?? 0} điểm</span> : <span className="text-orange-500 flex items-center justify-center gap-1"><FiClock/> Chờ chấm</span>}

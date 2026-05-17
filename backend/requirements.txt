@@ -16,3 +16,5 @@ validators==0.22.0
 requests==2.31.0
 beautifulsoup4==4.12.2
 python-magic==0.4.27
+Flask-APScheduler
+openpyxl

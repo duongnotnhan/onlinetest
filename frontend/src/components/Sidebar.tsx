@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
@@ -37,7 +36,6 @@ export default function Sidebar() {
 
   const studentLinks = [
     { path: '/student/dashboard', label: 'Dashboard', icon: FiHome },
-    { path: '/student/results', label: 'Kết quả thi', icon: FiBarChart2 },
   ]
 
   let links: Array<{ path: string; label: string; icon: any }> = []

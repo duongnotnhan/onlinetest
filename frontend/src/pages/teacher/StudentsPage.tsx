@@ -41,7 +41,8 @@ const ELECTIVE_SUBJECTS = [
   { code: 'TIENG_TR', name: 'Tiếng Trung' },
   { code: 'TIENG_DU', name: 'Tiếng Đức' },
   { code: 'TIENG_NH', name: 'Tiếng Nhật' },
-  { code: 'TIENG_HAN', name: 'Tiếng Hàn' }
+  { code: 'TIENG_HAN', name: 'Tiếng Hàn' },
+  { code: 'MT', name: 'Miễn thi' }
 ]
 
 export default function TeacherStudentsPage() {
@@ -289,18 +290,36 @@ export default function TeacherStudentsPage() {
                 {!importResult ? (
                   <form id="import-form" onSubmit={handleImport} className="space-y-6">
                     <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm">
-                      <p className="font-bold mb-2">Cấu trúc file CSV bắt buộc (Toán và Văn là mặc định):</p>
+                      <p className="font-bold mb-2">Cấu trúc file CSV bắt buộc:</p>
                       <ul className="list-disc pl-5 space-y-1">
                         <li>Dòng đầu tiên là tiêu đề cột. Dữ liệu bắt đầu từ dòng số 2.</li>
-                        <li>Các cột: <strong>cccd, full_name, gender, date_of_birth, address, phone, class_name, elective_1, elective_2</strong>.</li>
+                        <li>Tiêu đề các cột bao gồm: <strong>cccd, full_name, gender, date_of_birth, address, phone, class_name, tuchon1, tuchon2</strong>.</li>
                         <li>Cột ngày sinh (date_of_birth) định dạng: <code>YYYY-MM-DD</code>.</li>
                         <li className="pt-2 text-xs opacity-90 border-t border-blue-200 mt-2">
-                          <strong>Mã môn Tự chọn (Copy chính xác):</strong> VAT_LI, HOA_HO, SINH_H, DIA_LI, LICH_S, GDKTVL, TIN_HO, CNNG, CNNN, TIENG_ANH, TIENG_RU, TIENG_PH, TIENG_TR, TIENG_DU, TIENG_NH, TIENG_HAN
+                          <strong>Mã môn Tự chọn (Copy chính xác):</strong> <code>VAT_LI</code>, <code>HOA_HO</code>, <code>SINH_H</code>, <code>DIA_LI</code>, <code>LICH_S</code>, <code>GDKTVL</code>, <code>TIN_HO</code>, <code>CNNG</code>, <code>CNNN</code>, <code>TIENG_ANH</code>, <code>TIENG_RU</code>, <code>TIENG_PH</code>, <code>TIENG_TR</code>, <code>TIENG_DU</code>, <code>TIENG_NH</code>, <code>TIENG_HAN</code>, <code>MT</code>.
+                          <br></br>Với mỗi thí sinh, nếu chỉ đăng ký 1 môn tự chọn thì cột còn lại để <code>MT</code>. Bảng giải thích mã môn tự chọn như sau:
+                          <table className="w-full mt-2 text-left text-sm">
+                            <thead>
+                              <tr className="bg-blue-100">
+                                <th className="py-2 px-3 font-bold text-blue-900">Mã môn</th>
+                                <th className="py-2 px-3 font-bold text-blue-900">Tên môn</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {ELECTIVE_SUBJECTS.map(sub => (
+                                <tr key={sub.code} className="border-t">
+                                  <td className="py-2 px-3 font-mono text-blue-600">{sub.code}</td>
+                                  <td className="py-2 px-3">{sub.name}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </li>
                       </ul>
                     </div>
 
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+                      <strong className='text-red-600'>Sau khi nhập dữ liệu, sẽ KHÔNG thể sửa hoặc xóa Mã định danh và Giới tính nữa, hãy kiểm tra kỹ thông tin trước khi nhập.</strong>
                       <input 
                         type="file" 
                         accept=".csv" 
@@ -337,6 +356,7 @@ export default function TeacherStudentsPage() {
                             <li key={idx} className="p-3 text-sm flex gap-4">
                                <span className="font-mono bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs whitespace-nowrap h-fit">Dòng {err.row}</span>
                                <span className="text-gray-700">{Array.isArray(err.error) ? err.error.join(', ') : err.error}</span>
+                               <span className="text-gray-400 italic">{err.details}</span>
                             </li>
                           ))}
                         </ul>
