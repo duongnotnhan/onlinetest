@@ -10,12 +10,12 @@ export default function Navbar() {
       <div className="px-6 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Hệ Thống Thi Trực Tuyến
+            {user?.role === 'admin' ? 'Bảng Điều Khiển Quản Trị Viên' : user?.role === 'teacher' ? 'Bảng Điều Khiển Giáo Viên' : 'Bảng Điều Khiển Thí Sinh'}
           </h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-gray-700">
-            {user?.full_name} ({user?.role})
+            {user?.full_name} ({user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'teacher' ? 'Giáo viên' : 'Thí sinh'})
           </span>
           <button
             onClick={logout}

@@ -48,7 +48,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white border-r border-gray-200 text-gray-700 flex flex-col shrink-0">
       <div className="p-5 border-b border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Exam System</h2>
+        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Hệ Thống Thi Trực Tuyến</h2>
       </div>
       <nav className="mt-4 flex-1 overflow-y-auto space-y-0.5 px-2">
         {links.map(({ path, label, icon: Icon }) => {

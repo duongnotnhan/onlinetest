@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 interface Student {
   student_id: number
   full_name: string
-  email: string
+  cccd: string
   school_name: string
   is_active: boolean
 }
@@ -52,7 +52,7 @@ export default function StudentsPage() {
             <thead>
               <tr className="border-b bg-gray-50">
                 <th className="text-left py-3 px-4">Tên</th>
-                <th className="text-left py-3 px-4">Email</th>
+                <th className="text-left py-3 px-4">Mã định danh</th>
                 <th className="text-left py-3 px-4">Trường</th>
                 <th className="text-left py-3 px-4">Trạng thái</th>
               </tr>
@@ -61,7 +61,7 @@ export default function StudentsPage() {
               {students.map((student) => (
                 <tr key={student.student_id} className="border-b hover:bg-gray-50">
                   <td className="py-3 px-4">{student.full_name}</td>
-                  <td className="py-3 px-4">{student.email}</td>
+                  <td className="py-3 px-4">{student.cccd}</td>
                   <td className="py-3 px-4">{student.school_name}</td>
                   <td className="py-3 px-4">
                     <span
