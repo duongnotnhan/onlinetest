@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Verify database schema"""
+import pymysql
 import os
 import sys
 from pathlib import Path
@@ -9,7 +10,6 @@ load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-import pymysql
 
 def verify_schema():
     """Verify that reading_material column exists"""
@@ -39,7 +39,7 @@ def verify_schema():
                 print(f"   Comment: {result['COLUMN_COMMENT']}")
             else:
                 print("❌ Column 'reading_material' NOT found in exam_papers table")
-                
+
             # List all columns in exam_papers
             cursor.execute("""
                 SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
@@ -52,6 +52,7 @@ def verify_schema():
                 print(f"  - {col['COLUMN_NAME']}")
     finally:
         connection.close()
+
 
 if __name__ == '__main__':
     verify_schema()

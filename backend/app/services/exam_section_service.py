@@ -12,24 +12,25 @@ import json
 
 class ExamSectionService:
     """Service quản lý Question Sections"""
-    
+
     @staticmethod
-    def get_or_create_section_type(section_type_key: str) -> Optional[QuestionSectionType]:
+    def get_or_create_section_type(
+            section_type_key: str) -> Optional[QuestionSectionType]:
         """
         Lấy hoặc tạo Section Type theo key
-        
+
         Args:
             section_type_key: Mã key của section type (e.g., 'reading_comprehension')
-            
+
         Returns:
             QuestionSectionType object hoặc None
         """
         section_type = QuestionSectionType.query.filter_by(
             section_type_key=section_type_key
         ).first()
-        
+
         return section_type
-    
+
     @staticmethod
     def create_section(
         paper_id: int,
@@ -41,7 +42,7 @@ class ExamSectionService:
     ) -> Tuple[bool, str, Optional[QuestionSection]]:
         """
         Tạo mới một Question Section
-        
+
         Args:
             paper_id: ID của Exam Paper
             section_type_key: Mã key của section type
@@ -49,7 +50,7 @@ class ExamSectionService:
             section_description: Mô tả của section
             display_order: Thứ tự hiển thị
             created_by: User ID tạo section
-            
+
         Returns:
             Tuple (success: bool, message: str, section: QuestionSection or None)
         """
@@ -58,21 +59,24 @@ class ExamSectionService:
             paper = ExamPaper.query.get(paper_id)
             if not paper:
                 return False, "Exam Paper không tồn tại", None
-            
+
             # Nếu chưa có display_order, lấy max + 1
             if display_order is None:
                 last_section = QuestionSection.query.filter_by(
                     paper_id=paper_id
                 ).order_by(QuestionSection.display_order.desc()).first()
-                display_order = (last_section.display_order + 1) if last_section else 1
-            
+                display_order = (
+                    last_section.display_order +
+                    1) if last_section else 1
+
             # Lấy section type nếu có
             section_type_id = None
             if section_type_key:
-                section_type = ExamSectionService.get_or_create_section_type(section_type_key)
+                section_type = ExamSectionService.get_or_create_section_type(
+                    section_type_key)
                 if section_type:
                     section_type_id = section_type.section_type_id
-            
+
             # Tạo section
             section = QuestionSection(
                 paper_id=paper_id,
@@ -83,21 +87,21 @@ class ExamSectionService:
                 created_by=created_by,
                 is_visible=True
             )
-            
+
             db.session.add(section)
             db.session.commit()
-            
+
             return True, "Tạo Section thành công", section
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi tạo section: {str(e)}", None
-    
+
     @staticmethod
     def get_section(section_id: int) -> Optional[QuestionSection]:
         """Lấy section theo ID"""
         return QuestionSection.query.get(section_id)
-    
+
     @staticmethod
     def get_sections_by_paper(paper_id: int) -> List[QuestionSection]:
         """Lấy tất cả section của một paper"""
@@ -105,7 +109,7 @@ class ExamSectionService:
             paper_id=paper_id,
             is_visible=True
         ).order_by(QuestionSection.display_order).all()
-    
+
     @staticmethod
     def update_section(
         section_id: int,
@@ -115,13 +119,13 @@ class ExamSectionService:
     ) -> Tuple[bool, str]:
         """
         Cập nhật section
-        
+
         Args:
             section_id: ID của section
             section_name: Tên mới
             section_description: Mô tả mới
             updated_by: User ID cập nhật
-            
+
         Returns:
             Tuple (success: bool, message: str)
         """
@@ -129,31 +133,31 @@ class ExamSectionService:
             section = QuestionSection.query.get(section_id)
             if not section:
                 return False, "Section không tồn tại"
-            
+
             if section_name:
                 section.section_name = section_name
-            
+
             if section_description:
                 section.section_description = section_description
-            
+
             section.updated_at = datetime.utcnow()
-            
+
             db.session.commit()
-            
+
             return True, "Cập nhật section thành công"
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi cập nhật section: {str(e)}"
-    
+
     @staticmethod
     def delete_section(section_id: int) -> Tuple[bool, str]:
         """
         Xóa section (soft delete)
-        
+
         Args:
             section_id: ID của section
-            
+
         Returns:
             Tuple (success: bool, message: str)
         """
@@ -161,17 +165,17 @@ class ExamSectionService:
             section = QuestionSection.query.get(section_id)
             if not section:
                 return False, "Section không tồn tại"
-            
+
             # Soft delete
             section.is_visible = False
             db.session.commit()
-            
+
             return True, "Xóa section thành công"
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi xóa section: {str(e)}"
-    
+
     @staticmethod
     def add_passage(
         section_id: int,
@@ -185,7 +189,7 @@ class ExamSectionService:
     ) -> Tuple[bool, str, Optional[QuestionPassage]]:
         """
         Thêm passage cho section
-        
+
         Args:
             section_id: ID của section
             passage_text: Nội dung passage
@@ -195,7 +199,7 @@ class ExamSectionService:
             display_order: Thứ tự hiển thị
             created_by: User ID tạo passage
             sanitize: Có sanitize HTML hay không
-            
+
         Returns:
             Tuple (success: bool, message: str, passage: QuestionPassage or None)
         """
@@ -204,18 +208,20 @@ class ExamSectionService:
             section = QuestionSection.query.get(section_id)
             if not section:
                 return False, "Section không tồn tại", None
-            
+
             # Sanitize HTML nếu cần
             if sanitize:
                 passage_text = RichTextService.sanitize_html(passage_text)
-            
+
             # Lấy display_order nếu chưa có
             if display_order is None:
                 last_passage = QuestionPassage.query.filter_by(
                     section_id=section_id
                 ).order_by(QuestionPassage.display_order.desc()).first()
-                display_order = (last_passage.display_order + 1) if last_passage else 1
-            
+                display_order = (
+                    last_passage.display_order +
+                    1) if last_passage else 1
+
             # Tạo passage
             passage = QuestionPassage(
                 section_id=section_id,
@@ -227,16 +233,16 @@ class ExamSectionService:
                 created_by=created_by,
                 is_visible=True
             )
-            
+
             db.session.add(passage)
             db.session.commit()
-            
+
             return True, "Thêm passage thành công", passage
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi thêm passage: {str(e)}", None
-    
+
     @staticmethod
     def get_passages_by_section(section_id: int) -> List[QuestionPassage]:
         """Lấy tất cả passage của một section"""
@@ -244,7 +250,7 @@ class ExamSectionService:
             section_id=section_id,
             is_visible=True
         ).order_by(QuestionPassage.display_order).all()
-    
+
     @staticmethod
     def add_question_to_section(
         section_id: int,
@@ -259,7 +265,7 @@ class ExamSectionService:
     ) -> Tuple[bool, str, Optional[Question]]:
         """
         Thêm hoặc liên kết câu hỏi vào section
-        
+
         Args:
             section_id: ID của section
             question_id: ID của câu hỏi (nếu đã tồn tại)
@@ -270,7 +276,7 @@ class ExamSectionService:
             passage_id: ID của passage liên kết
             created_by: User ID tạo câu hỏi
             sanitize: Có sanitize HTML hay không
-            
+
         Returns:
             Tuple (success: bool, message: str, question: Question or None)
         """
@@ -279,55 +285,58 @@ class ExamSectionService:
             section = QuestionSection.query.get(section_id)
             if not section:
                 return False, "Section không tồn tại", None
-            
+
             # Nếu có question_id, cập nhật câu hỏi hiện tại
             if question_id:
                 question = Question.query.get(question_id)
                 if not question:
                     return False, "Câu hỏi không tồn tại", None
-                
+
                 question.section_id = section_id
-                
+
                 if display_order_in_section:
                     question.display_order_in_section = display_order_in_section
                 else:
                     # Lấy max display_order_in_section
                     last_q = Question.query.filter_by(
-                        section_id=section_id
-                    ).order_by(Question.display_order_in_section.desc()).first()
-                    question.display_order_in_section = (last_q.display_order_in_section + 1) if last_q else 1
-                
+                        section_id=section_id).order_by(
+                        Question.display_order_in_section.desc()).first()
+                    question.display_order_in_section = (
+                        last_q.display_order_in_section + 1) if last_q else 1
+
                 if passage_id:
                     question.passage_id = passage_id
-                
+
                 db.session.commit()
-                
+
                 return True, "Cập nhật câu hỏi trong section thành công", question
-            
+
             # Nếu không có question_id, tạo câu hỏi mới
             if not question_text or not question_type:
                 return False, "Cần có question_text và question_type", None
-            
+
             # Sanitize HTML nếu cần
             if sanitize:
                 question_text = RichTextService.sanitize_html(question_text)
-            
+
             # Lấy paper_id từ section
             paper_id = section.paper_id
-            
+
             # Lấy question_number
             last_q = Question.query.filter_by(paper_id=paper_id).order_by(
                 Question.question_number.desc()
             ).first()
             question_number = (last_q.question_number + 1) if last_q else 1
-            
+
             # Lấy display_order_in_section nếu chưa có
             if display_order_in_section is None:
                 last_q_in_section = Question.query.filter_by(
                     section_id=section_id
                 ).order_by(Question.display_order_in_section.desc()).first()
-                display_order_in_section = (last_q_in_section.display_order_in_section + 1) if last_q_in_section else 1
-            
+                display_order_in_section = (
+                    last_q_in_section.display_order_in_section +
+                    1) if last_q_in_section else 1
+
             # Tạo câu hỏi mới
             question = Question(
                 paper_id=paper_id,
@@ -343,54 +352,56 @@ class ExamSectionService:
                 created_by=created_by,
                 is_visible=True
             )
-            
+
             db.session.add(question)
             db.session.commit()
-            
+
             return True, "Thêm câu hỏi vào section thành công", question
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi thêm câu hỏi vào section: {str(e)}", None
-    
+
     @staticmethod
-    def get_questions_in_section(section_id: int, include_hidden: bool = False) -> List[Question]:
+    def get_questions_in_section(
+            section_id: int,
+            include_hidden: bool = False) -> List[Question]:
         """
         Lấy tất cả câu hỏi trong section
-        
+
         Args:
             section_id: ID của section
             include_hidden: Có bao gồm câu hỏi ẩn không
-            
+
         Returns:
             List của Question objects
         """
         query = Question.query.filter_by(section_id=section_id)
-        
+
         if not include_hidden:
             query = query.filter_by(is_visible=True)
-        
+
         return query.order_by(Question.display_order_in_section).all()
-    
+
     @staticmethod
     def get_section_with_questions(section_id: int) -> Dict:
         """
         Lấy section với tất cả câu hỏi và passage
-        
+
         Args:
             section_id: ID của section
-            
+
         Returns:
             Dict chứa section info, passages, và questions
         """
         section = QuestionSection.query.get(section_id)
-        
+
         if not section:
             return None
-        
+
         passages = ExamSectionService.get_passages_by_section(section_id)
         questions = ExamSectionService.get_questions_in_section(section_id)
-        
+
         return {
             'section_id': section.section_id,
             'section_name': section.section_name,
@@ -421,7 +432,7 @@ class ExamSectionService:
                 for q in questions
             ]
         }
-    
+
     @staticmethod
     def reorder_questions_in_section(
         section_id: int,
@@ -429,11 +440,11 @@ class ExamSectionService:
     ) -> Tuple[bool, str]:
         """
         Sắp xếp lại thứ tự câu hỏi trong section
-        
+
         Args:
             section_id: ID của section
             question_orders: List của {'question_id': int, 'display_order': int}
-            
+
         Returns:
             Tuple (success: bool, message: str)
         """
@@ -442,15 +453,15 @@ class ExamSectionService:
                 question = Question.query.get(order_item['question_id'])
                 if question and question.section_id == section_id:
                     question.display_order_in_section = order_item['display_order']
-            
+
             db.session.commit()
-            
+
             return True, "Sắp xếp lại thứ tự thành công"
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi sắp xếp lại thứ tự: {str(e)}"
-    
+
     @staticmethod
     def duplicate_section(
         section_id: int,
@@ -459,12 +470,12 @@ class ExamSectionService:
     ) -> Tuple[bool, str, Optional[QuestionSection]]:
         """
         Duplicate (sao chép) section sang paper khác
-        
+
         Args:
             section_id: ID của section nguồn
             new_paper_id: ID của paper đích
             created_by: User ID tạo section mới
-            
+
         Returns:
             Tuple (success: bool, message: str, new_section: QuestionSection or None)
         """
@@ -472,7 +483,7 @@ class ExamSectionService:
             source_section = QuestionSection.query.get(section_id)
             if not source_section:
                 return False, "Section nguồn không tồn tại", None
-            
+
             # Tạo section mới
             success, msg, new_section = ExamSectionService.create_section(
                 paper_id=new_paper_id,
@@ -481,10 +492,10 @@ class ExamSectionService:
                 section_description=source_section.section_description,
                 created_by=created_by
             )
-            
+
             if not success:
                 return False, msg, None
-            
+
             # Copy passages
             passages = ExamSectionService.get_passages_by_section(section_id)
             for passage in passages:
@@ -497,16 +508,16 @@ class ExamSectionService:
                     created_by=created_by,
                     sanitize=False  # Đã sanitize rồi
                 )
-            
+
             # Copy questions (nhưng không copy answers)
             questions = ExamSectionService.get_questions_in_section(section_id)
             for question in questions:
                 # Tạo câu hỏi mới trong đề thi mới
                 # (Logic tạo câu hỏi ở ExamPaperService)
                 pass
-            
+
             return True, "Duplicate section thành công", new_section
-            
+
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi duplicate section: {str(e)}", None

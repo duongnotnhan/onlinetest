@@ -145,7 +145,7 @@ export default function LoginPage() {
                 : "bg-gray-200 text-gray-700"
             }`}
           >
-            GVQL/QTV
+            GV/GVQL/QTV
           </button>
         </div>
 

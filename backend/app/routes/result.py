@@ -15,7 +15,8 @@ def query_results():
         return jsonify({'error': 'Missing required fields'}), 400
 
     try:
-        date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+        date_of_birth = datetime.strptime(
+            data['date_of_birth'], '%Y-%m-%d').date()
     except ValueError:
         return jsonify({'error': 'Invalid date format, use YYYY-MM-DD'}), 400
 
@@ -37,7 +38,9 @@ def query_results():
     if not student:
         return jsonify({'error': 'No matching student found'}), 404
 
-    results = ExamResult.query.filter_by(student_id=student.student_id, published=True).all()
+    results = ExamResult.query.filter_by(
+        student_id=student.student_id,
+        published=True).all()
     payload = []
     for result in results:
         session = ExamSession.query.get(result.exam_session_id)

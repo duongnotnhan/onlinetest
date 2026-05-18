@@ -259,7 +259,7 @@ Thực hiện tạo tài khoản QTV theo hướng dẫn của script.
 ```bash
 (myenv) onlinetest/backend/$> python app.py
 # hoặc
-(myenv) onlinetest/backend/$> flask run
+(myenv) onlinetest/backend/$> flask run # không khuyến nghị sử dụng lệnh này
 ```
 
 Backend sẽ chạy tại `http://localhost:5000` hoặc địa chỉ khác tùy vào cấu hình mà người dùng sử dụng.
@@ -299,7 +299,7 @@ Frontend và backend sẽ chạy song song với nhau, người dùng có thể 
 
 ### Nhật ký
 
-- Bật SQLALCHEMY_ECHO=True trong development để debug SQL
+- Bật `SQLALCHEMY_ECHO=True` trong development để debug CSDL
 
 ### Xử lý lỗi
 

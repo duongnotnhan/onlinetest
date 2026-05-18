@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Run database migrations"""
+import pymysql
 import os
 import sys
 from pathlib import Path
@@ -10,7 +11,6 @@ load_dotenv()
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-import pymysql
 
 def get_db_connection():
     """Get database connection"""
@@ -25,15 +25,16 @@ def get_db_connection():
     )
     return connection
 
+
 def run_migrations():
     """Run all SQL migrations in order"""
     migrations_dir = Path(__file__).parent / 'migrations'
     sql_files = sorted([f for f in migrations_dir.glob('*.sql')])
-    
+
     if not sql_files:
         print("No migrations found")
         return
-    
+
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
@@ -57,6 +58,7 @@ def run_migrations():
         connection.rollback()
     finally:
         connection.close()
+
 
 if __name__ == '__main__':
     run_migrations()

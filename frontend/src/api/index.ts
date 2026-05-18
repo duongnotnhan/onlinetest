@@ -406,20 +406,20 @@ export const gradingAPI = {
 const handleBlobDownload = (response: any, defaultFilename: string) => {
   const blob = new Blob([response.data]);
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
 
-  const disposition = response.headers['content-disposition'];
+  const disposition = response.headers["content-disposition"];
   let filename = defaultFilename;
-  if (disposition && disposition.indexOf('attachment') !== -1) {
+  if (disposition && disposition.indexOf("attachment") !== -1) {
     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
     const matches = filenameRegex.exec(disposition);
     if (matches != null && matches[1]) {
-      filename = matches[1].replace(/['"]/g, '');
+      filename = matches[1].replace(/['"]/g, "");
     }
   }
 
-  link.setAttribute('download', filename);
+  link.setAttribute("download", filename);
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -427,39 +427,68 @@ const handleBlobDownload = (response: any, defaultFilename: string) => {
 };
 
 export const exportAPI = {
-  exportStudents: async (exportType: 'csv' | 'xlsx', filters?: any) => {
-    const response = await axiosInstance.post(`/export/data/students/${exportType}`, filters || {}, {
-      responseType: 'blob'
-    });
+  exportStudents: async (exportType: "csv" | "xlsx", filters?: any) => {
+    const response = await axiosInstance.post(
+      `/export/data/students/${exportType}`,
+      filters || {},
+      {
+        responseType: "blob",
+      },
+    );
     handleBlobDownload(response, `Danh_Sach_Hoc_Sinh.${exportType}`);
     return response;
   },
 
-  exportResults: async (exportType: 'csv' | 'xlsx', filters: { exam_session_id: number; subject_id?: number }) => {
-    const response = await axiosInstance.post(`/export/data/results/${exportType}`, filters, {
-      responseType: 'blob'
-    });
+  exportResults: async (
+    exportType: "csv" | "xlsx",
+    filters: { exam_session_id: number; subject_id?: number },
+  ) => {
+    const response = await axiosInstance.post(
+      `/export/data/results/${exportType}`,
+      filters,
+      {
+        responseType: "blob",
+      },
+    );
     handleBlobDownload(response, `Ket_Qua_Thi.${exportType}`);
     return response;
   },
 
-  exportSchoolResults: async (exportType: 'csv' | 'xlsx', filters: { exam_session_id: number }) => {
-    const response = await axiosInstance.post(`/export/data/school_results/${exportType}`, filters, {
-      responseType: 'blob'
-    });
+  exportSchoolResults: async (
+    exportType: "csv" | "xlsx",
+    filters: { exam_session_id: number },
+  ) => {
+    const response = await axiosInstance.post(
+      `/export/data/school_results/${exportType}`,
+      filters,
+      {
+        responseType: "blob",
+      },
+    );
     handleBlobDownload(response, `Ket_Qua_Toan_Truong.${exportType}`);
     return response;
   },
 
-  downloadTemplate: async (templateType: 'student' | 'question_mc' | 'question_tf' | 'question_sa') => {
-    const response = await axiosInstance.get(`/export/template/${templateType}`, {
-      responseType: 'blob'
-    });
-    const typeName = templateType === 'student' ? '_Hoc_Sinh' :
-                     templateType === 'question_mc' ? '_Cau_Hoi_Trac_Nghiem' :
-                     templateType === 'question_tf' ? '_Cau_Hoi_Dung_Sai' :
-                     templateType === 'question_sa' ? '_Cau_Hoi_Tra_Loi_Ngan' : '';
+  downloadTemplate: async (
+    templateType: "student" | "question_mc" | "question_tf" | "question_sa",
+  ) => {
+    const response = await axiosInstance.get(
+      `/export/template/${templateType}`,
+      {
+        responseType: "blob",
+      },
+    );
+    const typeName =
+      templateType === "student"
+        ? "_Hoc_Sinh"
+        : templateType === "question_mc"
+          ? "_Cau_Hoi_Trac_Nghiem"
+          : templateType === "question_tf"
+            ? "_Cau_Hoi_Dung_Sai"
+            : templateType === "question_sa"
+              ? "_Cau_Hoi_Tra_Loi_Ngan"
+              : "";
     handleBlobDownload(response, `Mau_Nhap_Lieu${typeName}.csv`);
     return response;
-  }
-}
+  },
+};

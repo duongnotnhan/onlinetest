@@ -12,13 +12,13 @@ def validate_password(password):
     """
     if len(password) < 8:
         return False, 'Password must be at least 8 characters'
-    
+
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
         return False, 'Password must contain at least 1 special character'
-    
+
     if not re.search(r'\d', password):
         return False, 'Password must contain at least 1 digit'
-    
+
     return True, 'Password is valid'
 
 

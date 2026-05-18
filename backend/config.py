@@ -11,12 +11,13 @@ def env_bool(name, default=False):
         return default
     return value.strip().lower() in {'1', 'true', 'yes', 'on'}
 
+
 class Config:
     """Base configuration"""
     # Flask
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     DEBUG = False
-    
+
     # Database
     SQLALCHEMY_DATABASE_URI = (
         f"mysql+pymysql://{os.getenv('DB_USER', 'root')}:"
@@ -27,24 +28,26 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
-    
+
     # JWT
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
+    JWT_SECRET_KEY = os.getenv(
+        'JWT_SECRET_KEY',
+        'jwt-secret-key-change-in-production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     JWT_VERIFY_SUB = False
-    
+
     # File Upload
     MAX_CONTENT_LENGTH = 52428800  # 50MB
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
     ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'csv', 'xlsx', 'xls', 'pdf'}
-    
+
     # CORS
     CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']
-    
+
     # 2FA
     TWO_FA_ISSUER = 'ExamSystem'
-    
+
     # Email
     MAIL_SERVER = os.getenv('MAIL_SERVER')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 587))

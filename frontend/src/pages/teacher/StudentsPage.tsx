@@ -198,7 +198,7 @@ export default function TeacherStudentsPage() {
           </button>
           <button
             type="button"
-            onClick={() => exportAPI.downloadTemplate('student')}
+            onClick={() => exportAPI.downloadTemplate("student")}
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <FiDownloadCloud /> Tải mẫu CSV
@@ -461,10 +461,12 @@ export default function TeacherStudentsPage() {
                 >
                   <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm">
                     <p className="font-bold mb-2 flex items-center gap-2">
-                      <span>VUI LÒNG ĐỌC KỸ HƯỚNG DẪN CẤU TRÚC TỆP CSV DƯỚI ĐÂY:</span>
+                      <span>
+                        VUI LÒNG ĐỌC KỸ HƯỚNG DẪN CẤU TRÚC TỆP CSV DƯỚI ĐÂY:
+                      </span>
                       <button
                         type="button"
-                        onClick={() => exportAPI.downloadTemplate('student')}
+                        onClick={() => exportAPI.downloadTemplate("student")}
                         className="btn-secondary flex items-center gap-2 text-sm"
                       >
                         <FiDownloadCloud /> Tải mẫu CSV
@@ -484,26 +486,53 @@ export default function TeacherStudentsPage() {
                         .
                       </li>
                       <li>
-                        Cột ngày sinh (<strong>date_of_birth</strong>) định dạng:{" "}
+                        Cột ngày sinh (<strong>date_of_birth</strong>) định
+                        dạng:{" "}
                         <code className="text-orange-600">YYYY-MM-DD</code>.
                       </li>
                       <li>
-                        <strong>Lưu ý:</strong> trước các giá trị số như CCCD, Ngày sinh, Số điện thoại, chèn dấu nháy đơn (<code className="text-orange-600">'</code>) phía trước để không bị mất số 0 hoặc bị chuyển đổi định dạng tự động bởi Excel. Hệ thống sẽ tự động phân tách dấu nháy đơn ra khỏi dữ liệu.
+                        <strong>Lưu ý:</strong> trước các giá trị số như CCCD,
+                        Ngày sinh, Số điện thoại, chèn dấu nháy đơn (
+                        <code className="text-orange-600">'</code>) phía trước
+                        để không bị mất số 0 hoặc bị chuyển đổi định dạng tự
+                        động bởi Excel. Hệ thống sẽ tự động phân tách dấu nháy
+                        đơn ra khỏi dữ liệu.
                       </li>
                       <li className="pt-2 opacity-90 border-t border-blue-200 mt-2">
                         <strong>Mã môn Tự chọn (COPY CHÍNH XÁC):</strong>{" "}
-                        <code className="font-mono text-red-600">VAT_LI</code>, <code className="font-mono text-red-600">HOA_HO</code>,{" "}
-                        <code className="font-mono text-red-600">SINH_H</code>, <code className="font-mono text-red-600">DIA_LI</code>,{" "}
-                        <code className="font-mono text-red-600">LICH_S</code>, <code className="font-mono text-red-600">GDKTVL</code>,{" "}
-                        <code className="font-mono text-red-600">TIN_HO</code>, <code className="font-mono text-red-600">CNNG</code>,{" "}
-                        <code className="font-mono text-red-600">CNNN</code>, <code className="font-mono text-red-600">TIENG_ANH</code>,{" "}
-                        <code className="font-mono text-red-600">TIENG_RU</code>, <code className="font-mono text-red-600">TIENG_PH</code>,{" "}
-                        <code className="font-mono text-red-600">TIENG_TR</code>, <code className="font-mono text-red-600">TIENG_DU</code>,{" "}
-                        <code className="font-mono text-red-600">TIENG_NH</code>, <code className="font-mono text-red-600">TIENG_HAN</code>,{" "}
-                        <code className="font-mono text-red-600">MT</code>.
+                        <code className="font-mono text-red-600">VAT_LI</code>,{" "}
+                        <code className="font-mono text-red-600">HOA_HO</code>,{" "}
+                        <code className="font-mono text-red-600">SINH_H</code>,{" "}
+                        <code className="font-mono text-red-600">DIA_LI</code>,{" "}
+                        <code className="font-mono text-red-600">LICH_S</code>,{" "}
+                        <code className="font-mono text-red-600">GDKTVL</code>,{" "}
+                        <code className="font-mono text-red-600">TIN_HO</code>,{" "}
+                        <code className="font-mono text-red-600">CNNG</code>,{" "}
+                        <code className="font-mono text-red-600">CNNN</code>,{" "}
+                        <code className="font-mono text-red-600">
+                          TIENG_ANH
+                        </code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">TIENG_RU</code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">TIENG_PH</code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">TIENG_TR</code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">TIENG_DU</code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">TIENG_NH</code>
+                        ,{" "}
+                        <code className="font-mono text-red-600">
+                          TIENG_HAN
+                        </code>
+                        , <code className="font-mono text-red-600">MT</code>.
                       </li>
                       <li>
-                        Với mỗi thí sinh, nếu chỉ đăng ký 1 môn tự chọn thì cột <strong>tuchon1</strong> để môn tự chọn 1, cột còn lại để <code className="font-mono text-red-600">MT</code>.<br></br>Bảng giải thích mã môn tự chọn như sau:
+                        Với mỗi thí sinh, nếu chỉ đăng ký 1 môn tự chọn thì cột{" "}
+                        <strong>tuchon1</strong> để môn tự chọn 1, cột còn lại
+                        để <code className="font-mono text-red-600">MT</code>.
+                        <br></br>Bảng giải thích mã môn tự chọn như sau:
                         <table className="w-full mt-2 text-left text-sm">
                           <thead>
                             <tr className="bg-blue-100">
@@ -533,7 +562,7 @@ export default function TeacherStudentsPage() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
                     <strong className="text-red-600">
                       Sau khi nhập dữ liệu, sẽ KHÔNG thể sửa hoặc xóa Mã định
-                      danh, Giới tính và Ngày sinh nữa, hãy kiểm tra kỹ thông 
+                      danh, Giới tính và Ngày sinh nữa, hãy kiểm tra kỹ thông
                       tin trước khi nhập.
                     </strong>
                     <input

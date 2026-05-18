@@ -15,6 +15,7 @@ app = create_app(os.getenv('FLASK_ENV', 'development'))
 scheduler = APScheduler()
 scheduler.init_app(app)
 
+
 @scheduler.task('interval', id='auto_submit_overdue_job', minutes=1)
 def run_auto_submit():
     with app.app_context():
@@ -23,6 +24,7 @@ def run_auto_submit():
             ExamScoringService.auto_submit_overdue_exams()
         except Exception as e:
             print(f"[System Error] Lỗi khi chạy auto submit job: {str(e)}")
+
 
 scheduler.start()
 # ==========================================
@@ -45,7 +47,7 @@ def init_db():
 def seed_db():
     """Seed database with initial data"""
     from app.models import Subject
-    
+
     # Insert subjects
     subjects_data = [
         ('TOAN', 'Toán', 'group1', 'multiple_choice', 90),
@@ -68,7 +70,7 @@ def seed_db():
         ('TIENG_HAN', 'Tiếng Hàn', 'language', 'multiple_choice', 50),
         ('MT', 'Miễn thi', 'group0', 'multiple_choice', 0)
     ]
-    
+
     for code, name, group, exam_type, duration in subjects_data:
         if not Subject.query.filter_by(subject_code=code).first():
             subject = Subject(
@@ -79,7 +81,7 @@ def seed_db():
                 duration_minutes=duration
             )
             db.session.add(subject)
-    
+
     db.session.commit()
     print('Database seeded with subjects.')
 
