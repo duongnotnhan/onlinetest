@@ -410,6 +410,15 @@ def import_students():
         
         for row_num, row in enumerate(csv_data, start=2):
             try:
+                clean_row = {}
+                for key, value in row.items():
+                    if key:
+                        clean_key = key.strip()
+                        clean_val = value.strip().strip("'") if value else ""
+                        clean_row[clean_key] = clean_val
+                
+                row = clean_row
+
                 for field in required_fields:
                     if not row.get(field):
                         raise ValueError(f'Missing {field}')

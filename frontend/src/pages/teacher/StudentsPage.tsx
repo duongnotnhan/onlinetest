@@ -197,6 +197,7 @@ export default function TeacherStudentsPage() {
             <FiUpload /> Nhập file CSV
           </button>
           <button
+            type="button"
             onClick={() => exportAPI.downloadTemplate('student')}
             className="btn-secondary flex items-center gap-2 text-sm"
           >
@@ -269,12 +270,14 @@ export default function TeacherStudentsPage() {
                   </td>
                   <td className="py-3 px-4 flex justify-end gap-2">
                     <button
+                      type="button"
                       className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded flex items-center gap-1 transition-colors"
                       onClick={() => openEditModal(student)}
                     >
                       <FiEdit size={14} /> Sửa
                     </button>
                     <button
+                      type="button"
                       className="text-orange-600 hover:text-orange-800 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded flex items-center gap-1 transition-colors"
                       onClick={() => resetPassword(student.student_id)}
                       title="Cấp lại mật khẩu mặc định"
@@ -457,8 +460,15 @@ export default function TeacherStudentsPage() {
                   className="space-y-6"
                 >
                   <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm">
-                    <p className="font-bold mb-2">
-                      Cấu trúc file CSV bắt buộc:
+                    <p className="font-bold mb-2 flex items-center gap-2">
+                      <span>VUI LÒNG ĐỌC KỸ HƯỚNG DẪN CẤU TRÚC TỆP CSV DƯỚI ĐÂY:</span>
+                      <button
+                        type="button"
+                        onClick={() => exportAPI.downloadTemplate('student')}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                      >
+                        <FiDownloadCloud /> Tải mẫu CSV
+                      </button>
                     </p>
                     <ul className="list-disc pl-5 space-y-1">
                       <li>
@@ -474,22 +484,26 @@ export default function TeacherStudentsPage() {
                         .
                       </li>
                       <li>
-                        Cột ngày sinh (date_of_birth) định dạng:{" "}
-                        <code>YYYY-MM-DD</code>.
+                        Cột ngày sinh (<strong>date_of_birth</strong>) định dạng:{" "}
+                        <code className="text-orange-600">YYYY-MM-DD</code>.
                       </li>
-                      <li className="pt-2 text-xs opacity-90 border-t border-blue-200 mt-2">
-                        <strong>Mã môn Tự chọn (Copy chính xác):</strong>{" "}
-                        <code>VAT_LI</code>, <code>HOA_HO</code>,{" "}
-                        <code>SINH_H</code>, <code>DIA_LI</code>,{" "}
-                        <code>LICH_S</code>, <code>GDKTVL</code>,{" "}
-                        <code>TIN_HO</code>, <code>CNNG</code>,{" "}
-                        <code>CNNN</code>, <code>TIENG_ANH</code>,{" "}
-                        <code>TIENG_RU</code>, <code>TIENG_PH</code>,{" "}
-                        <code>TIENG_TR</code>, <code>TIENG_DU</code>,{" "}
-                        <code>TIENG_NH</code>, <code>TIENG_HAN</code>,{" "}
-                        <code>MT</code>.<br></br>Với mỗi thí sinh, nếu chỉ đăng
-                        ký 1 môn tự chọn thì cột còn lại để <code>MT</code>.
-                        Bảng giải thích mã môn tự chọn như sau:
+                      <li>
+                        <strong>Lưu ý:</strong> trước các giá trị số như CCCD, Ngày sinh, Số điện thoại, chèn dấu nháy đơn (<code className="text-orange-600">'</code>) phía trước để không bị mất số 0 hoặc bị chuyển đổi định dạng tự động bởi Excel. Hệ thống sẽ tự động phân tách dấu nháy đơn ra khỏi dữ liệu.
+                      </li>
+                      <li className="pt-2 opacity-90 border-t border-blue-200 mt-2">
+                        <strong>Mã môn Tự chọn (COPY CHÍNH XÁC):</strong>{" "}
+                        <code className="font-mono text-red-600">VAT_LI</code>, <code className="font-mono text-red-600">HOA_HO</code>,{" "}
+                        <code className="font-mono text-red-600">SINH_H</code>, <code className="font-mono text-red-600">DIA_LI</code>,{" "}
+                        <code className="font-mono text-red-600">LICH_S</code>, <code className="font-mono text-red-600">GDKTVL</code>,{" "}
+                        <code className="font-mono text-red-600">TIN_HO</code>, <code className="font-mono text-red-600">CNNG</code>,{" "}
+                        <code className="font-mono text-red-600">CNNN</code>, <code className="font-mono text-red-600">TIENG_ANH</code>,{" "}
+                        <code className="font-mono text-red-600">TIENG_RU</code>, <code className="font-mono text-red-600">TIENG_PH</code>,{" "}
+                        <code className="font-mono text-red-600">TIENG_TR</code>, <code className="font-mono text-red-600">TIENG_DU</code>,{" "}
+                        <code className="font-mono text-red-600">TIENG_NH</code>, <code className="font-mono text-red-600">TIENG_HAN</code>,{" "}
+                        <code className="font-mono text-red-600">MT</code>.
+                      </li>
+                      <li>
+                        Với mỗi thí sinh, nếu chỉ đăng ký 1 môn tự chọn thì cột <strong>tuchon1</strong> để môn tự chọn 1, cột còn lại để <code className="font-mono text-red-600">MT</code>.<br></br>Bảng giải thích mã môn tự chọn như sau:
                         <table className="w-full mt-2 text-left text-sm">
                           <thead>
                             <tr className="bg-blue-100">
@@ -504,7 +518,7 @@ export default function TeacherStudentsPage() {
                           <tbody>
                             {ELECTIVE_SUBJECTS.map((sub) => (
                               <tr key={sub.code} className="border-t">
-                                <td className="py-2 px-3 font-mono text-blue-600">
+                                <td className="py-2 px-3 font-mono text-red-600">
                                   {sub.code}
                                 </td>
                                 <td className="py-2 px-3">{sub.name}</td>
@@ -514,12 +528,6 @@ export default function TeacherStudentsPage() {
                         </table>
                       </li>
                     </ul>
-                    <button
-                      onClick={() => exportAPI.downloadTemplate('student')}
-                      className="btn-secondary flex items-center gap-2 text-sm"
-                    >
-                      <FiDownloadCloud /> Tải mẫu CSV
-                    </button>
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">

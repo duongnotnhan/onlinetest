@@ -24,7 +24,6 @@ def download_template(template_type):
     template_type: 'student', 'question_mc', 'question_tf', 'question_sa'
     """
     output = io.StringIO()
-    output.write('\ufeff')
     writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
     
     if template_type == 'student':
