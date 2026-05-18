@@ -235,8 +235,7 @@ class StudentImportService:
 
             for row_num, row in enumerate(students_data, start=2):
                 is_valid, field_errors = StudentImportService.validate_student_row(
-                    row, required_fields
-                )
+                    row, required_fields)
 
                 if not is_valid:
                     failed += 1

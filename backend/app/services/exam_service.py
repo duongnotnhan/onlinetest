@@ -127,8 +127,12 @@ class ExamService:
 
     @staticmethod
     def create_exam_session(
-        session_name, session_type, start_date, end_date, created_by, description=None
-    ):
+            session_name,
+            session_type,
+            start_date,
+            end_date,
+            created_by,
+            description=None):
         """Create exam session"""
         session = ExamSession(
             session_name=session_name,
@@ -196,10 +200,12 @@ class ResultService:
             return None
 
         total_score = 0
-        responses = StudentResponse.query.filter_by(attempt_id=exam_attempt_id).all()
+        responses = StudentResponse.query.filter_by(
+            attempt_id=exam_attempt_id).all()
 
         for response in responses:
-            answer = Answer.query.filter_by(question_id=response.question_id).first()
+            answer = Answer.query.filter_by(
+                question_id=response.question_id).first()
 
             if answer and response.response_value == answer.answer_value:
                 response.marked_correct = True
@@ -235,7 +241,8 @@ class ResultService:
                 result.score = attempt.total_score
                 result.published = True
                 result.published_date = datetime.utcnow()
-                score = float(attempt.total_score) if attempt.total_score else 0
+                score = float(
+                    attempt.total_score) if attempt.total_score else 0
                 if score >= 8.5:
                     result.grade = "A"
                 elif score >= 7.0:
@@ -375,14 +382,19 @@ class ExamPaperService:
             if existing:
                 return False, "Paper already exists for this subject"
 
-            structure = ExamPaperService.SUBJECT_STRUCTURES.get(subject.subject_name)
+            structure = ExamPaperService.SUBJECT_STRUCTURES.get(
+                subject.subject_name)
             # Quét mở rộng hỗ trợ tên môn chứa từ khóa Tiếng Anh
             if not structure and "tiếng anh" in subject.subject_name.lower():
-                structure = ExamPaperService.SUBJECT_STRUCTURES.get("Tiếng Anh")
+                structure = ExamPaperService.SUBJECT_STRUCTURES.get(
+                    "Tiếng Anh")
 
             if not structure:
                 structure = {
-                    "parts": {"Phần I": {"questions": 40, "points_per_q": 0.25}},
+                    "parts": {
+                        "Phần I": {
+                            "questions": 40,
+                            "points_per_q": 0.25}},
                     "total_questions": 40,
                     "total_points": 10.0,
                 }
@@ -514,7 +526,11 @@ class ExamPaperService:
             return False, str(e)
 
     @staticmethod
-    def add_answer_choice(question_id, choice_label, choice_text, display_order):
+    def add_answer_choice(
+            question_id,
+            choice_label,
+            choice_text,
+            display_order):
         """Add answer choice to question"""
         from app.models import Question, AnswerChoice
 
@@ -556,7 +572,8 @@ class ExamPaperService:
             if not answer:
                 answer = Answer(
                     question_id=question_id,
-                    answer_type=_answer_type_for_question(question.question_type),
+                    answer_type=_answer_type_for_question(
+                        question.question_type),
                     created_by=created_by,
                 )
 
@@ -565,7 +582,8 @@ class ExamPaperService:
             db.session.add(answer)
             db.session.commit()
 
-            return True, {"question_id": question_id, "correct_answer": correct_answer}
+            return True, {"question_id": question_id,
+                          "correct_answer": correct_answer}
         except Exception as e:
             db.session.rollback()
             return False, str(e)
@@ -627,8 +645,7 @@ class ExamPaperService:
                         }
                         for q in part_qs:
                             track = (
-                                q.informatics_track if q.informatics_track else "common"
-                            )
+                                q.informatics_track if q.informatics_track else "common")
                             if track not in tracks:
                                 track = "common"
                             tracks[track].append(q)
@@ -680,7 +697,8 @@ class ExamPaperService:
                                 meta = {}
                                 if sec and sec.section_description:
                                     try:
-                                        meta = json.loads(sec.section_description)
+                                        meta = json.loads(
+                                            sec.section_description)
                                     except BaseException:
                                         pass
 
@@ -693,10 +711,8 @@ class ExamPaperService:
                                     meta["shuffle_questions"] = False
 
                                 block_meta[b_id] = {
-                                    "type": "subsection",
-                                    "shuffle": meta.get("shuffle_questions", True),
-                                    "min_q": q.question_number,
-                                }
+                                    "type": "subsection", "shuffle": meta.get(
+                                        "shuffle_questions", True), "min_q": q.question_number, }
                             blocks[b_id].append(q)
                             block_meta[b_id]["min_q"] = min(
                                 block_meta[b_id]["min_q"], q.question_number
@@ -762,7 +778,8 @@ class ExamPaperService:
                                 ]
                         part_final_order.extend(b_qs)
 
-                    randomized_order.extend([q.question_id for q in part_final_order])
+                    randomized_order.extend(
+                        [q.question_id for q in part_final_order])
 
                 generated = GeneratedPaper(
                     paper_id=paper_id,
@@ -776,10 +793,8 @@ class ExamPaperService:
 
             db.session.commit()
             return True, {
-                "paper_id": paper_id,
-                "versions_created": num_versions,
-                "version_ids": [v.generated_paper_id for v in created_versions],
-            }
+                "paper_id": paper_id, "versions_created": num_versions, "version_ids": [
+                    v.generated_paper_id for v in created_versions], }
         except Exception as e:
             db.session.rollback()
             return False, str(e)
@@ -802,7 +817,8 @@ class ExamPaperService:
                 paper_id=paper_id
             ).all()
             for q in questions_without_answers:
-                answer = Answer.query.filter_by(question_id=q.question_id).first()
+                answer = Answer.query.filter_by(
+                    question_id=q.question_id).first()
                 if not answer and q.question_type == "multiple_choice":
                     return False, f"Question {
                         q.question_number} has no answer key"
@@ -813,7 +829,8 @@ class ExamPaperService:
                     return False, f"Question {
                         q.question_number} must have 4 true/false items"
 
-            versions = GeneratedPaper.query.filter_by(paper_id=paper_id).count()
+            versions = GeneratedPaper.query.filter_by(
+                paper_id=paper_id).count()
             if versions == 0:
                 return False, "Paper has no generated versions"
 
@@ -850,14 +867,15 @@ class ExamPaperService:
                 return None
 
             questions = Question.query.filter_by(paper_id=paper_id).all()
-            versions = GeneratedPaper.query.filter_by(paper_id=paper_id).count()
+            versions = GeneratedPaper.query.filter_by(
+                paper_id=paper_id).count()
             subject = Subject.query.get(paper.subject_id)
 
             sections = (
-                QuestionSection.query.filter_by(paper_id=paper_id, is_visible=True)
-                .order_by(QuestionSection.display_order)
-                .all()
-            )
+                QuestionSection.query.filter_by(
+                    paper_id=paper_id,
+                    is_visible=True) .order_by(
+                    QuestionSection.display_order) .all())
             subsections_data = []
             for sec in sections:
                 meta = {}
@@ -900,7 +918,8 @@ class ExamPaperService:
                     "shuffle_enabled": q.template_category != "no_shuffle",
                 }
 
-                answer = Answer.query.filter_by(question_id=q.question_id).first()
+                answer = Answer.query.filter_by(
+                    question_id=q.question_id).first()
                 if answer:
                     q_data["answer_key"] = answer.answer_value
 
@@ -967,7 +986,8 @@ class ExamScoringService:
             if not attempt:
                 return False, "Attempt not found"
 
-            responses = StudentResponse.query.filter_by(attempt_id=attempt_id).all()
+            responses = StudentResponse.query.filter_by(
+                attempt_id=attempt_id).all()
 
             total_score = 0
             correct_count = 0
@@ -983,7 +1003,8 @@ class ExamScoringService:
                     response.marked_correct = None
                     response.points_earned = 0
                     continue
-                score, is_correct = _score_response(attempt, question, response)
+                score, is_correct = _score_response(
+                    attempt, question, response)
                 total_score += score
                 if is_correct:
                     correct_count += 1
@@ -1032,14 +1053,14 @@ class ExamScoringService:
                     attempt.is_submitted = 1
                     attempt.submitted_time = cutoff_time
 
-                    ExamScoringService.auto_score_multiple_choice(attempt.attempt_id)
+                    ExamScoringService.auto_score_multiple_choice(
+                        attempt.attempt_id)
                     closed_count += 1
 
             if closed_count > 0:
                 db.session.commit()
                 print(
-                    f"[System] Đã tự động thu và chấm {closed_count} bài thi quá hạn."
-                )
+                    f"[System] Đã tự động thu và chấm {closed_count} bài thi quá hạn.")
 
             return True, closed_count
         except Exception as e:
@@ -1146,14 +1167,16 @@ def _score_response(attempt, question, response):
         return 0, False
 
     if question.question_type == "multiple_choice":
-        answer = Answer.query.filter_by(question_id=response.question_id).first()
+        answer = Answer.query.filter_by(
+            question_id=response.question_id).first()
         if not answer:
             return 0, False
 
         expected_label = answer.answer_value
         generated_paper = None
         if attempt.generated_paper_id:
-            generated_paper = GeneratedPaper.query.get(attempt.generated_paper_id)
+            generated_paper = GeneratedPaper.query.get(
+                attempt.generated_paper_id)
         paper = question.exam_paper
 
         shuffle_choices = True
@@ -1193,13 +1216,19 @@ def _score_response(attempt, question, response):
             _normalize_answer(response.response_value)
             == _normalize_answer(expected_label)
         )
-        return (float(question.points or 0.25), True) if is_correct else (0, False)
+        return (
+            float(
+                question.points or 0.25),
+            True) if is_correct else (
+            0,
+            False)
 
     if question.question_type == "true_false":
         return _score_true_false(question, response.response_value)
 
     if question.question_type == "short_answer":
-        answer = Answer.query.filter_by(question_id=response.question_id).first()
+        answer = Answer.query.filter_by(
+            question_id=response.question_id).first()
         is_correct = bool(
             answer
             and _normalize_short_answer(response.response_value)
@@ -1232,7 +1261,8 @@ def _score_true_false(question, response_value):
 
     correct = 0
     for item in question.items.all():
-        submitted = answers.get(str(item.item_id), answers.get(item.item_label))
+        submitted = answers.get(
+            str(item.item_id), answers.get(item.item_label))
         if submitted is None:
             continue
         if _normalize_bool(submitted) == _normalize_bool(item.correct_value):
@@ -1245,7 +1275,8 @@ def _score_true_false(question, response_value):
 def _normalize_bool(value):
     if isinstance(value, bool):
         return value
-    return str(value).strip().lower() in {"true", "1", "yes", "y", "đúng", "dung", "d"}
+    return str(value).strip().lower() in {
+        "true", "1", "yes", "y", "đúng", "dung", "d"}
 
 
 def _normalize_answer(value):

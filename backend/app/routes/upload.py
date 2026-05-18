@@ -33,7 +33,8 @@ def compress_image(image_data, max_size=PREVIEW_SIZE):
         # Convert RGBA to RGB if necessary
         if img.mode in ("RGBA", "LA", "P"):
             background = Image.new("RGB", img.size, (255, 255, 255))
-            background.paste(img, mask=img.split()[-1] if img.mode == "RGBA" else None)
+            background.paste(img, mask=img.split()
+                             [-1] if img.mode == "RGBA" else None)
             img = background
 
         # Resize if needed
@@ -71,9 +72,8 @@ def upload_image():
             return (
                 jsonify(
                     {
-                        "error": f'File type not allowed. Allowed: {", ".join(ALLOWED_IMAGE_EXTENSIONS)}'
-                    }
-                ),
+                        "error": f'File type not allowed. Allowed: {
+                            ", ".join(ALLOWED_IMAGE_EXTENSIONS)}'}),
                 400,
             )
 
@@ -142,7 +142,11 @@ def serve_image(filepath):
         from flask import send_from_directory
 
         upload_folder = get_upload_folder()
-        return send_from_directory(os.path.join(upload_folder, "images"), filepath)
+        return send_from_directory(
+            os.path.join(
+                upload_folder,
+                "images"),
+            filepath)
     except Exception as e:
         return jsonify({"error": "Image not found"}), 404
 
@@ -167,7 +171,8 @@ def delete_image(filename):
         for file in files:
             os.remove(file)
 
-        return jsonify({"success": True, "message": "Image deleted successfully"}), 200
+        return jsonify(
+            {"success": True, "message": "Image deleted successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": f"Delete failed: {str(e)}"}), 500

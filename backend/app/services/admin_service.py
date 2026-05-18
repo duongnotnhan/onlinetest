@@ -68,8 +68,12 @@ class AdminService:
 
     @staticmethod
     def create_exam_session(
-        session_name, session_type, start_date, end_date, created_by, description=None
-    ):
+            session_name,
+            session_type,
+            start_date,
+            end_date,
+            created_by,
+            description=None):
         """Create exam session"""
         try:
             session = ExamSession(
@@ -225,9 +229,8 @@ class ExamStatisticsService:
 
             avg_score = 0
             if graded:
-                total_score = sum(
-                    float(a.total_score) if a.total_score else 0 for a in graded
-                )
+                total_score = sum(float(a.total_score)
+                                  if a.total_score else 0 for a in graded)
                 avg_score = total_score / len(graded)
 
             return {
@@ -249,15 +252,14 @@ class ExamStatisticsService:
 
             total = len(attempts)
             passed = sum(
-                1 for a in attempts if a.total_score and float(a.total_score) >= 5.0
-            )
+                1 for a in attempts if a.total_score and float(
+                    a.total_score) >= 5.0)
             failed = total - passed
 
             avg_score = 0
             if total > 0:
-                total_score = sum(
-                    float(a.total_score) if a.total_score else 0 for a in attempts
-                )
+                total_score = sum(float(a.total_score)
+                                  if a.total_score else 0 for a in attempts)
                 avg_score = total_score / total
 
             return {

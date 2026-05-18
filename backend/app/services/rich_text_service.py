@@ -174,10 +174,13 @@ class RichTextService:
         Returns:
             List của RichTextTemplate objects
         """
-        return RichTextTemplate.query.filter_by(category=category, is_active=True).all()
+        return RichTextTemplate.query.filter_by(
+            category=category, is_active=True).all()
 
     @staticmethod
-    def apply_template(template_code: str, replacements: Dict = None) -> Optional[str]:
+    def apply_template(
+            template_code: str,
+            replacements: Dict = None) -> Optional[str]:
         """
         Áp dụng template với thay thế variables
 
@@ -267,13 +270,15 @@ class MediaService:
             file_size = len(file.read())
             file.seek(0)  # Reset file pointer
 
-            if file_size > MediaService.MAX_FILE_SIZE.get(media_type, 5 * 1024 * 1024):
+            if file_size > MediaService.MAX_FILE_SIZE.get(
+                    media_type, 5 * 1024 * 1024):
                 return False, f"File quá lớn. Max size: {
                     MediaService.MAX_FILE_SIZE.get(media_type)}", None
 
             # Validate MIME type
             mime_type = file.content_type
-            if mime_type not in MediaService.ALLOWED_MIME_TYPES.get(media_type, []):
+            if mime_type not in MediaService.ALLOWED_MIME_TYPES.get(
+                    media_type, []):
                 return False, f"Loại file không được hỗ trợ: {mime_type}", None
 
             # Tạo tên file với timestamp
@@ -442,64 +447,55 @@ class QuestionCommentService:
 # ============================================================
 # RICH TEXT TEMPLATE EXAMPLES
 # ============================================================
-DEFAULT_RICH_TEXT_TEMPLATES = [
-    {
-        "template_name": "Tiêu đề Chính",
-        "template_code": "title_main",
-        "html_content": '<h1 style="text-align: center; color: #000; font-weight: bold;">{title}</h1>',
-        "category": "headings",
-        "preview_text": "Tiêu đề lớn căn giữa",
-    },
-    {
-        "template_name": "Tiêu đề Phụ",
-        "template_code": "title_sub",
-        "html_content": '<h2 style="color: #333;">{subtitle}</h2>',
-        "category": "headings",
-        "preview_text": "Tiêu đề cỡ trung",
-    },
-    {
-        "template_name": "Đoạn Văn Thường",
-        "template_code": "paragraph_normal",
-        "html_content": '<p style="line-height: 1.6; text-align: justify;">{content}</p>',
-        "category": "paragraphs",
-        "preview_text": "Đoạn văn căn hai lề",
-    },
-    {
-        "template_name": "Văn Bản Nhấn Mạnh",
-        "template_code": "text_highlight",
-        "html_content": '<p><strong><mark style="background-color: yellow;">{text}</mark></strong></p>',
-        "category": "text_formatting",
-        "preview_text": "Text in đậm và highlight màu vàng",
-    },
-    {
-        "template_name": "Danh Sách Đạn",
-        "template_code": "list_bullet",
-        "html_content": "<ul><li>{item1}</li><li>{item2}</li><li>{item3}</li></ul>",
-        "category": "lists",
-        "preview_text": "Danh sách có dấu chấm",
-    },
-    {
-        "template_name": "Danh Sách Số",
-        "template_code": "list_numbered",
-        "html_content": "<ol><li>{item1}</li><li>{item2}</li><li>{item3}</li></ol>",
-        "category": "lists",
-        "preview_text": "Danh sách đánh số",
-    },
-    {
-        "template_name": "Trích Dẫn",
-        "template_code": "blockquote",
-        "html_content": '<blockquote style="border-left: 4px solid #ccc; padding-left: 15px; margin: 15px 0; font-style: italic; color: #666;">{quote}</blockquote>',
-        "category": "text_formatting",
-        "preview_text": "Đoạn trích dẫn",
-    },
-    {
-        "template_name": "Bảng Đơn Giản",
-        "template_code": "table_simple",
-        "html_content": '<table style="border-collapse: collapse; width: 100%;"><thead><tr style="background-color: #f0f0f0;"><th style="border: 1px solid #ccc; padding: 10px;">{header1}</th><th style="border: 1px solid #ccc; padding: 10px;">{header2}</th></tr></thead><tbody><tr><td style="border: 1px solid #ccc; padding: 10px;">{cell1}</td><td style="border: 1px solid #ccc; padding: 10px;">{cell2}</td></tr></tbody></table>',
-        "category": "tables",
-        "preview_text": "Bảng cơ bản",
-    },
-]
+DEFAULT_RICH_TEXT_TEMPLATES = [{"template_name": "Tiêu đề Chính",
+                                "template_code": "title_main",
+                                "html_content": '<h1 style="text-align: center; color: #000; font-weight: bold;">{title}</h1>',
+                                "category": "headings",
+                                "preview_text": "Tiêu đề lớn căn giữa",
+                                },
+                               {"template_name": "Tiêu đề Phụ",
+                                "template_code": "title_sub",
+                                "html_content": '<h2 style="color: #333;">{subtitle}</h2>',
+                                "category": "headings",
+                                "preview_text": "Tiêu đề cỡ trung",
+                                },
+                               {"template_name": "Đoạn Văn Thường",
+                                "template_code": "paragraph_normal",
+                                "html_content": '<p style="line-height: 1.6; text-align: justify;">{content}</p>',
+                                "category": "paragraphs",
+                                "preview_text": "Đoạn văn căn hai lề",
+                                },
+                               {"template_name": "Văn Bản Nhấn Mạnh",
+                                "template_code": "text_highlight",
+                                "html_content": '<p><strong><mark style="background-color: yellow;">{text}</mark></strong></p>',
+                                "category": "text_formatting",
+                                "preview_text": "Text in đậm và highlight màu vàng",
+                                },
+                               {"template_name": "Danh Sách Đạn",
+                                "template_code": "list_bullet",
+                                "html_content": "<ul><li>{item1}</li><li>{item2}</li><li>{item3}</li></ul>",
+                                "category": "lists",
+                                "preview_text": "Danh sách có dấu chấm",
+                                },
+                               {"template_name": "Danh Sách Số",
+                                "template_code": "list_numbered",
+                                "html_content": "<ol><li>{item1}</li><li>{item2}</li><li>{item3}</li></ol>",
+                                "category": "lists",
+                                "preview_text": "Danh sách đánh số",
+                                },
+                               {"template_name": "Trích Dẫn",
+                                "template_code": "blockquote",
+                                "html_content": '<blockquote style="border-left: 4px solid #ccc; padding-left: 15px; margin: 15px 0; font-style: italic; color: #666;">{quote}</blockquote>',
+                                "category": "text_formatting",
+                                "preview_text": "Đoạn trích dẫn",
+                                },
+                               {"template_name": "Bảng Đơn Giản",
+                                "template_code": "table_simple",
+                                "html_content": '<table style="border-collapse: collapse; width: 100%;"><thead><tr style="background-color: #f0f0f0;"><th style="border: 1px solid #ccc; padding: 10px;">{header1}</th><th style="border: 1px solid #ccc; padding: 10px;">{header2}</th></tr></thead><tbody><tr><td style="border: 1px solid #ccc; padding: 10px;">{cell1}</td><td style="border: 1px solid #ccc; padding: 10px;">{cell2}</td></tr></tbody></table>',
+                                "category": "tables",
+                                "preview_text": "Bảng cơ bản",
+                                },
+                               ]
 
 
 def initialize_default_templates(created_by: int = 1):

@@ -82,7 +82,8 @@ def create_exam_paper():
         paper = ExamPaper.query.get(result.get("paper_id"))
         if paper:
             if "randomization_enabled" in data:
-                paper.randomization_enabled = bool(data["randomization_enabled"])
+                paper.randomization_enabled = bool(
+                    data["randomization_enabled"])
 
             # For Vietnamese Language (Ngữ Văn), set shared reading material if
             # provided
@@ -171,7 +172,8 @@ def get_exam_papers():
         for paper in papers.items:
             subject = Subject.query.get(paper.subject_id)
             q_count = Question.query.filter_by(paper_id=paper.paper_id).count()
-            v_count = GeneratedPaper.query.filter_by(paper_id=paper.paper_id).count()
+            v_count = GeneratedPaper.query.filter_by(
+                paper_id=paper.paper_id).count()
 
             data.append(
                 {
@@ -250,7 +252,8 @@ def add_question(paper_id):
             created_by=get_jwt_identity(),
             choices=data.get("choices"),
             items=data.get("items"),
-            answer_value=data.get("answer_value") or data.get("correct_answer"),
+            answer_value=data.get(
+                "answer_value") or data.get("correct_answer"),
             max_words=data.get("max_words"),
             max_chars=data.get("max_chars"),
             informatics_track=data.get("informatics_track"),
@@ -268,7 +271,8 @@ def add_question(paper_id):
         return jsonify({"error": str(e)}), 500
 
 
-@exam_bp.route("/exam-papers/questions/<int:question_id>/choices", methods=["POST"])
+@exam_bp.route("/exam-papers/questions/<int:question_id>/choices",
+               methods=["POST"])
 @jwt_required()
 @admin_required
 def add_answer_choice(question_id):
@@ -300,7 +304,8 @@ def add_answer_choice(question_id):
         return jsonify({"error": str(e)}), 500
 
 
-@exam_bp.route("/exam-papers/questions/<int:question_id>/answer", methods=["POST"])
+@exam_bp.route("/exam-papers/questions/<int:question_id>/answer",
+               methods=["POST"])
 @jwt_required()
 @admin_required
 def set_answer_key(question_id):
@@ -332,7 +337,8 @@ def set_answer_key(question_id):
 # ============================================================
 
 
-@exam_bp.route("/exam-papers/<int:paper_id>/generate-versions", methods=["POST"])
+@exam_bp.route("/exam-papers/<int:paper_id>/generate-versions",
+               methods=["POST"])
 @jwt_required()
 @admin_required
 def generate_paper_versions(paper_id):
@@ -572,8 +578,7 @@ def submit_response(attempt_id):
             attempt.selected_informatics_track = data["selected_informatics_track"]
 
         if question.question_type == "short_answer" and not _is_valid_four_cell_answer(
-            data["student_answer"]
-        ):
+                data["student_answer"]):
             return (
                 jsonify(
                     {
@@ -591,7 +596,8 @@ def submit_response(attempt_id):
             response = StudentResponse(
                 attempt_id=attempt_id,
                 question_id=data["question_id"],
-                response_type=_response_type_for_question(question.question_type),
+                response_type=_response_type_for_question(
+                    question.question_type),
                 response_value=response_value,
             )
             db.session.add(response)
@@ -643,15 +649,12 @@ def submit_exam(attempt_id):
             attempt_id
         )
         has_essay = (
-            db.session.query(Question)
-            .join(StudentResponse, Question.question_id == StudentResponse.question_id)
-            .filter(
+            db.session.query(Question) .join(
+                StudentResponse,
+                Question.question_id == StudentResponse.question_id) .filter(
                 StudentResponse.attempt_id == attempt_id,
                 Question.question_type == "essay",
-            )
-            .first()
-            is not None
-        )
+            ) .first() is not None)
 
         if has_essay:
             _assign_essay_graders(attempt)
@@ -691,14 +694,17 @@ def get_attempt_status(attempt_id):
         subject = Subject.query.get(attempt.subject_id)
 
         # Get response count
-        response_count = StudentResponse.query.filter_by(attempt_id=attempt_id).count()
+        response_count = StudentResponse.query.filter_by(
+            attempt_id=attempt_id).count()
 
         # Calculate time remaining
         now = datetime.utcnow()
         exam_datetime_end = attempt.end_time or datetime.combine(
             schedule.exam_date, schedule.end_time
         )
-        time_remaining = max(0, int((exam_datetime_end - now).total_seconds() / 60))
+        time_remaining = max(
+            0, int(
+                (exam_datetime_end - now).total_seconds() / 60))
 
         return (
             jsonify(
@@ -769,7 +775,8 @@ def _assign_essay_graders(attempt):
         eligible = [teacher.user_id for teacher in teachers]
 
     for response in essay_responses:
-        existing = EssayGrade.query.filter_by(response_id=response.response_id).count()
+        existing = EssayGrade.query.filter_by(
+            response_id=response.response_id).count()
         if existing:
             continue
         for order, grader_id in enumerate(eligible[:2], start=1):
@@ -836,7 +843,8 @@ def add_subsection(paper_id):
         )
         db.session.add(section)
         db.session.commit()
-        return jsonify({"success": True, "subsection_id": section.section_id}), 201
+        return jsonify(
+            {"success": True, "subsection_id": section.section_id}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
@@ -855,7 +863,8 @@ def modify_subsection(section_id):
         if request.method == "DELETE":
             section.is_visible = False
             # Đồng thời unlink các câu hỏi khỏi section này
-            Question.query.filter_by(section_id=section_id).update({"section_id": None})
+            Question.query.filter_by(
+                section_id=section_id).update({"section_id": None})
             db.session.commit()
             return jsonify({"success": True}), 200
 
@@ -890,7 +899,8 @@ def modify_subsection(section_id):
 # ============================================================
 
 
-@exam_bp.route("/exam-papers/<int:paper_id>/import-questions", methods=["POST"])
+@exam_bp.route("/exam-papers/<int:paper_id>/import-questions",
+               methods=["POST"])
 @jwt_required()
 @admin_required
 def import_questions_csv(paper_id):
@@ -906,7 +916,9 @@ def import_questions_csv(paper_id):
         if not question_type:
             return jsonify({"error": "Vui lòng chọn loại câu hỏi"}), 400
 
-        stream = io.StringIO(file.stream.read().decode("utf-8-sig"), newline=None)
+        stream = io.StringIO(
+            file.stream.read().decode("utf-8-sig"),
+            newline=None)
         csv_data = csv.DictReader(stream, delimiter=",;")
 
         # Tìm số thứ tự câu hỏi lớn nhất hiện tại
@@ -930,7 +942,10 @@ def import_questions_csv(paper_id):
                 continue
 
             track_val = None
-            if track.lower() in ["cs", "computer_science", "khoa học máy tính"]:
+            if track.lower() in [
+                "cs",
+                "computer_science",
+                    "khoa học máy tính"]:
                 track_val = "computer_science"
             elif track.lower() in ["ict", "applied_informatics", "tin học ứng dụng"]:
                 track_val = "applied_informatics"
@@ -1080,7 +1095,8 @@ def reorder_questions(paper_id):
         # Commit lần cuối chốt danh sách
         db.session.commit()
 
-        return jsonify({"success": True, "message": "Đã cập nhật lại số thứ tự"}), 200
+        return jsonify(
+            {"success": True, "message": "Đã cập nhật lại số thứ tự"}), 200
 
     except Exception as e:
         db.session.rollback()

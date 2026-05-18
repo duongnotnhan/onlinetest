@@ -188,10 +188,8 @@ def get_profile():
                     "school_name": school.school_name if school else None,
                     "subject_specialty": teacher.subject_specialty,
                     "created_at": (
-                        teacher.created_at.isoformat() if teacher.created_at else None
-                    ),
-                }
-            ),
+                        teacher.created_at.isoformat() if teacher.created_at else None),
+                }),
             200,
         )
 
@@ -212,7 +210,8 @@ def get_dashboard():
         if teacher.subject_specialty == "NGU_VAN_GRADER":
             from app.models import EssayGrade
 
-            total_assigned = EssayGrade.query.filter_by(grader_id=user_id).count()
+            total_assigned = EssayGrade.query.filter_by(
+                grader_id=user_id).count()
             graded = EssayGrade.query.filter_by(
                 grader_id=user_id, final_status="completed"
             ).count()
@@ -234,8 +233,8 @@ def get_dashboard():
         else:
             school_id = teacher.school_id
             student_ids = [
-                s.student_id for s in Student.query.filter_by(school_id=school_id).all()
-            ]
+                s.student_id for s in Student.query.filter_by(
+                    school_id=school_id).all()]
             pending_makeups = (
                 MakeupRegistration.query.filter(
                     MakeupRegistration.student_id.in_(student_ids),
@@ -571,7 +570,8 @@ def import_students():
 
                 existing = Student.query.filter_by(cccd=row["cccd"]).first()
                 if existing:
-                    raise ValueError("Mã định danh/CCCD đã tồn tại trong hệ thống.")
+                    raise ValueError(
+                        "Mã định danh/CCCD đã tồn tại trong hệ thống.")
 
                 gender = None
                 if row.get("gender"):
@@ -582,10 +582,11 @@ def import_students():
                         "nu",
                         "nữ",
                     ]:
-                        raise ValueError("Giới tính phải là Male, Female hoặc Nam, Nữ.")
+                        raise ValueError(
+                            "Giới tính phải là Male, Female hoặc Nam, Nữ.")
                     gender = (
-                        "male" if row["gender"].lower() in ["male", "nam"] else "female"
-                    )
+                        "male" if row["gender"].lower() in [
+                            "male", "nam"] else "female")
                 else:
                     raise ValueError("Giới tính không được để trống.")
 
@@ -686,7 +687,9 @@ def import_students():
                     address=row["address"],
                     phone=row["phone"],
                     class_name=row["class_name"].upper(),
-                    permanent_address=row.get("permanent_address", row["address"]),
+                    permanent_address=row.get(
+                        "permanent_address",
+                        row["address"]),
                 )
 
                 db.session.add(student)
@@ -727,8 +730,7 @@ def import_students():
                         "row": row_num,
                         "error": "Gặp lỗi khi xử lý dòng này. Xem chi tiết lỗi bên cạnh hoặc liên hệ Quản trị viên nếu bạn nghĩ đây là lỗi hệ thống.",
                         "details": str(e),
-                    }
-                )
+                    })
 
         return (
             jsonify(
@@ -747,7 +749,8 @@ def import_students():
         return jsonify({"error": str(e)}), 500
 
 
-@teacher_bp.route("/students/<int:student_id>/reset-password", methods=["POST"])
+@teacher_bp.route("/students/<int:student_id>/reset-password",
+                  methods=["POST"])
 @jwt_required()
 @teacher_required
 def reset_student_password(student_id):
@@ -808,7 +811,8 @@ def upload_student_photo(student_id):
 
         ext = file.filename.rsplit(".", 1)[-1].lower()
         if ext not in {"jpg", "jpeg", "png"}:
-            return jsonify({"error": "Only jpg, jpeg, png files are supported"}), 400
+            return jsonify(
+                {"error": "Only jpg, jpeg, png files are supported"}), 400
 
         student.profile_photo = file.read()
         student.profile_photo_filename = file.filename
@@ -859,13 +863,13 @@ def register_students_for_exam():
         for student_id in student_ids:
             student = Student.query.get(student_id)
             if not student:
-                errors.append({"student_id": student_id, "error": "Student not found"})
+                errors.append({"student_id": student_id,
+                              "error": "Student not found"})
                 continue
 
             if student.school_id != school_id:
-                errors.append(
-                    {"student_id": student_id, "error": "Student not in your school"}
-                )
+                errors.append({"student_id": student_id,
+                               "error": "Student not in your school"})
                 continue
 
             for subject_id in subject_ids:
@@ -942,13 +946,13 @@ def create_makeup_request():
         for student_id in student_ids:
             student = Student.query.get(student_id)
             if not student:
-                errors.append({"student_id": student_id, "error": "Student not found"})
+                errors.append({"student_id": student_id,
+                              "error": "Student not found"})
                 continue
 
             if student.school_id != school_id:
-                errors.append(
-                    {"student_id": student_id, "error": "Student not in your school"}
-                )
+                errors.append({"student_id": student_id,
+                               "error": "Student not in your school"})
                 continue
 
             existing = MakeupRegistration.query.filter_by(
@@ -1005,15 +1009,16 @@ def get_makeup_registrations(session_id):
         query = MakeupRegistration.query.filter_by(exam_session_id=session_id)
 
         student_ids = [
-            s.student_id for s in Student.query.filter_by(school_id=school_id).all()
-        ]
+            s.student_id for s in Student.query.filter_by(
+                school_id=school_id).all()]
         query = query.filter(MakeupRegistration.student_id.in_(student_ids))
 
         if status:
             query = query.filter_by(approval_status=status)
 
         total = query.count()
-        registrations = query.paginate(page=page, per_page=limit, error_out=False)
+        registrations = query.paginate(
+            page=page, per_page=limit, error_out=False)
 
         data = []
         for reg in registrations.items:
@@ -1025,11 +1030,9 @@ def get_makeup_registrations(session_id):
                     "student_name": student.full_name if student else None,
                     "subject_name": subject.subject_name if subject else None,
                     "request_date": (
-                        reg.request_date.isoformat() if reg.request_date else None
-                    ),
+                        reg.request_date.isoformat() if reg.request_date else None),
                     "approval_status": reg.approval_status,
-                }
-            )
+                })
 
         return (
             jsonify(

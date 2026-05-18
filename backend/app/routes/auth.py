@@ -56,7 +56,8 @@ def register():
     data = request.get_json()
 
     # Validate required fields
-    if not data.get("username") or not data.get("password") or not data.get("role"):
+    if not data.get("username") or not data.get(
+            "password") or not data.get("role"):
         return jsonify({"error": "Missing required fields"}), 400
 
     # Validate role
@@ -139,8 +140,10 @@ def login():
     data = request.get_json()
 
     # Validate required fields
-    if not data.get("cccd") or not data.get("password") or not data.get("role"):
-        return jsonify({"error": "Missing required fields (cccd, password, role)"}), 400
+    if not data.get("cccd") or not data.get(
+            "password") or not data.get("role"):
+        return jsonify(
+            {"error": "Missing required fields (cccd, password, role)"}), 400
 
     # Validate role
     if data["role"] not in ["student", "teacher", "admin"]:
@@ -152,17 +155,20 @@ def login():
             # Student login by CCCD
             student = Student.query.filter_by(cccd=data["cccd"]).first()
             if not student:
-                return jsonify({"error": "Số CCCD/CMND/ĐDCN không tồn tại"}), 401
+                return jsonify(
+                    {"error": "Số CCCD/CMND/ĐDCN không tồn tại"}), 401
             user = student.user
         else:
             # Teacher/Admin login by username
             user = User.query.filter_by(username=data["cccd"]).first()
             if not user:
-                return jsonify({"error": "Tên đăng nhập hoặc mật khẩu không đúng"}), 401
+                return jsonify(
+                    {"error": "Tên đăng nhập hoặc mật khẩu không đúng"}), 401
 
         # Verify password
         if not user or not user.check_password(data["password"]):
-            return jsonify({"error": "Số CCCD/CMND/ĐDCN hoặc mật khẩu không đúng"}), 401
+            return jsonify(
+                {"error": "Số CCCD/CMND/ĐDCN hoặc mật khẩu không đúng"}), 401
 
         # Check account active status
         if not user.is_active:
@@ -322,7 +328,8 @@ def setup_2fa():
     user = User.query.get(user_id)
 
     if not user or user.role == "student":
-        return jsonify({"error": "Only teachers and admins can setup 2FA"}), 403
+        return jsonify(
+            {"error": "Only teachers and admins can setup 2FA"}), 403
 
     try:
         # Generate secret
@@ -353,8 +360,7 @@ def setup_2fa():
                     "qr_code": f"data:image/png;base64,{qr_str}",
                     "provisioning_uri": provisioning_uri,
                     "message": "Quét mã QR để thiết lập 2FA trên ứng dụng Authenticator của bạn",
-                }
-            ),
+                }),
             200,
         )
 
@@ -371,7 +377,8 @@ def verify_2fa():
     data = request.get_json()
 
     if not user or user.role == "student":
-        return jsonify({"error": "Only teachers and admins can verify 2FA"}), 403
+        return jsonify(
+            {"error": "Only teachers and admins can verify 2FA"}), 403
 
     if not data.get("secret") or not data.get("otp"):
         return jsonify({"error": "Missing secret or OTP"}), 400

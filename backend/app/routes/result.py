@@ -16,7 +16,8 @@ def query_results():
         return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        date_of_birth = datetime.strptime(data["date_of_birth"], "%Y-%m-%d").date()
+        date_of_birth = datetime.strptime(
+            data["date_of_birth"], "%Y-%m-%d").date()
     except ValueError:
         return jsonify({"error": "Invalid date format, use YYYY-MM-DD"}), 400
 
@@ -47,14 +48,13 @@ def query_results():
             {
                 "session_name": session.session_name if session else None,
                 "subject_name": subject.subject_name if subject else None,
-                "score": float(result.score) if result.score is not None else None,
+                "score": float(
+                    result.score) if result.score is not None else None,
                 "grade": result.grade,
                 "status": result.status,
                 "published_date": (
-                    result.published_date.isoformat() if result.published_date else None
-                ),
-            }
-        )
+                    result.published_date.isoformat() if result.published_date else None),
+            })
 
     return (
         jsonify(

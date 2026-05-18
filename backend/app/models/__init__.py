@@ -17,8 +17,10 @@ class Province(db.Model):
 
     # Relationships
     districts = db.relationship(
-        "District", backref="province", lazy="dynamic", cascade="all, delete-orphan"
-    )
+        "District",
+        backref="province",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
 
 
 class District(db.Model):
@@ -73,7 +75,10 @@ class User(db.Model):
     phone = db.Column(db.String(15))
     full_name = db.Column(db.String(255))
     role = db.Column(db.Enum("student", "teacher", "admin"), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey("schools.school_id"), nullable=True)
+    school_id = db.Column(
+        db.Integer,
+        db.ForeignKey("schools.school_id"),
+        nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     is_first_login = db.Column(db.Boolean, default=True)
     two_fa_secret = db.Column(db.String(255))
@@ -161,7 +166,12 @@ class Subject(db.Model):
     subject_code = db.Column(db.String(20), nullable=False, unique=True)
     subject_name = db.Column(db.String(100), nullable=False, unique=True)
     group_code = db.Column(db.String(20))
-    exam_type = db.Column(db.Enum("multiple_choice", "essay", "mixed"), nullable=False)
+    exam_type = db.Column(
+        db.Enum(
+            "multiple_choice",
+            "essay",
+            "mixed"),
+        nullable=False)
     duration_minutes = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -171,7 +181,12 @@ class ExamSession(db.Model):
 
     exam_session_id = db.Column(db.Integer, primary_key=True)
     session_name = db.Column(db.String(255), nullable=False)
-    session_type = db.Column(db.Enum("official", "test", "makeup"), default="official")
+    session_type = db.Column(
+        db.Enum(
+            "official",
+            "test",
+            "makeup"),
+        default="official")
     description = db.Column(db.Text)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
@@ -179,7 +194,10 @@ class ExamSession(db.Model):
     is_locked = db.Column(db.Boolean, default=False)
     published_by = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     published_date = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -190,9 +208,8 @@ class ExamSchedule(db.Model):
     __tablename__ = "exam_schedules"
 
     schedule_id = db.Column(db.Integer, primary_key=True)
-    exam_session_id = db.Column(
-        db.Integer, db.ForeignKey("exam_sessions.exam_session_id"), nullable=False
-    )
+    exam_session_id = db.Column(db.Integer, db.ForeignKey(
+        "exam_sessions.exam_session_id"), nullable=False)
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
     )
@@ -228,7 +245,10 @@ class ExamPaper(db.Model):
         nullable=True,
         comment="Shared reading material for Vietnamese Language (Ngữ Văn)",
     )
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     approval_date = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -238,8 +258,10 @@ class ExamPaper(db.Model):
 
     subject = db.relationship("Subject")
     questions = db.relationship(
-        "Question", backref="exam_paper", lazy="dynamic", cascade="all, delete-orphan"
-    )
+        "Question",
+        backref="exam_paper",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
 
 
 class Question(db.Model):
@@ -282,30 +304,40 @@ class Question(db.Model):
         nullable=True,
     )
     informatics_track = db.Column(
-        db.Enum("common", "computer_science", "applied_informatics"), nullable=True
-    )
+        db.Enum(
+            "common",
+            "computer_science",
+            "applied_informatics"),
+        nullable=True)
     display_order = db.Column(db.Integer)
     is_visible = db.Column(db.Boolean, default=True)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
     # Hỗ trợ Section, Passage, Rich Text, và Media
-    section_id = db.Column(
-        db.Integer, db.ForeignKey("question_sections.section_id"), nullable=True
-    )
-    passage_id = db.Column(
-        db.Integer, db.ForeignKey("question_passages.passage_id"), nullable=True
-    )
+    section_id = db.Column(db.Integer, db.ForeignKey(
+        "question_sections.section_id"), nullable=True)
+    passage_id = db.Column(db.Integer, db.ForeignKey(
+        "question_passages.passage_id"), nullable=True)
     display_order_in_section = db.Column(db.Integer)
     is_rich_text = db.Column(db.Boolean, default=True)
     difficulty_level = db.Column(
         db.Enum("easy", "medium", "hard", "very_hard"), default="medium"
     )
     bloom_level = db.Column(
-        db.Enum("remember", "understand", "apply", "analyze", "evaluate", "create"),
+        db.Enum(
+            "remember",
+            "understand",
+            "apply",
+            "analyze",
+            "evaluate",
+            "create"),
         default="understand",
     )
     estimated_time_seconds = db.Column(db.Integer, default=60)
@@ -313,14 +345,20 @@ class Question(db.Model):
     template_category = db.Column(db.String(100))
 
     choices = db.relationship(
-        "AnswerChoice", backref="question", lazy="dynamic", cascade="all, delete-orphan"
-    )
+        "AnswerChoice",
+        backref="question",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
     items = db.relationship(
-        "QuestionItem", backref="question", lazy="dynamic", cascade="all, delete-orphan"
-    )
+        "QuestionItem",
+        backref="question",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
     answers = db.relationship(
-        "Answer", backref="question", lazy="dynamic", cascade="all, delete-orphan"
-    )
+        "Answer",
+        backref="question",
+        lazy="dynamic",
+        cascade="all, delete-orphan")
 
 
 class AnswerChoice(db.Model):
@@ -375,7 +413,10 @@ class Answer(db.Model):
     answer_value = db.Column(db.String(255))
     points = db.Column(db.Numeric(5, 2))
     explanation = db.Column(db.Text)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -410,12 +451,10 @@ class ExamAttempt(db.Model):
     schedule_id = db.Column(
         db.Integer, db.ForeignKey("exam_schedules.schedule_id"), nullable=False
     )
-    generated_paper_id = db.Column(
-        db.Integer, db.ForeignKey("generated_papers.generated_paper_id"), nullable=False
-    )
-    exam_session_id = db.Column(
-        db.Integer, db.ForeignKey("exam_sessions.exam_session_id"), nullable=False
-    )
+    generated_paper_id = db.Column(db.Integer, db.ForeignKey(
+        "generated_papers.generated_paper_id"), nullable=False)
+    exam_session_id = db.Column(db.Integer, db.ForeignKey(
+        "exam_sessions.exam_session_id"), nullable=False)
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
     )
@@ -456,8 +495,13 @@ class StudentResponse(db.Model):
         db.Integer, db.ForeignKey("questions.question_id"), nullable=False
     )
     response_type = db.Column(
-        db.Enum("choice", "true_false", "text", "numeric", "essay"), nullable=False
-    )
+        db.Enum(
+            "choice",
+            "true_false",
+            "text",
+            "numeric",
+            "essay"),
+        nullable=False)
     response_value = db.Column(db.Text)
     marked_correct = db.Column(db.Boolean)
     points_earned = db.Column(db.Numeric(5, 2))
@@ -471,10 +515,12 @@ class EssayGrade(db.Model):
     __tablename__ = "essay_grades"
 
     grade_id = db.Column(db.Integer, primary_key=True)
-    response_id = db.Column(
-        db.Integer, db.ForeignKey("student_responses.response_id"), nullable=False
-    )
-    grader_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    response_id = db.Column(db.Integer, db.ForeignKey(
+        "student_responses.response_id"), nullable=False)
+    grader_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     grading_order = db.Column(db.Integer)
     is_first_grader = db.Column(db.Boolean)
     is_second_grader = db.Column(db.Boolean)
@@ -502,9 +548,8 @@ class MakeupRegistration(db.Model):
     student_id = db.Column(
         db.Integer, db.ForeignKey("students.student_id"), nullable=False
     )
-    exam_session_id = db.Column(
-        db.Integer, db.ForeignKey("exam_sessions.exam_session_id"), nullable=False
-    )
+    exam_session_id = db.Column(db.Integer, db.ForeignKey(
+        "exam_sessions.exam_session_id"), nullable=False)
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
     )
@@ -535,9 +580,8 @@ class StudentSubjectRegistration(db.Model):
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
     )
-    exam_session_id = db.Column(
-        db.Integer, db.ForeignKey("exam_sessions.exam_session_id"), nullable=False
-    )
+    exam_session_id = db.Column(db.Integer, db.ForeignKey(
+        "exam_sessions.exam_session_id"), nullable=False)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
     registered_by = db.Column(db.Integer, db.ForeignKey("users.user_id"))
 
@@ -549,9 +593,8 @@ class ExamResult(db.Model):
     student_id = db.Column(
         db.Integer, db.ForeignKey("students.student_id"), nullable=False
     )
-    exam_session_id = db.Column(
-        db.Integer, db.ForeignKey("exam_sessions.exam_session_id"), nullable=False
-    )
+    exam_session_id = db.Column(db.Integer, db.ForeignKey(
+        "exam_sessions.exam_session_id"), nullable=False)
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
     )
@@ -585,8 +628,11 @@ class SpecialQuestionGroup(db.Model):
         db.Integer, db.ForeignKey("questions.question_id"), nullable=False
     )
     group_type = db.Column(
-        db.Enum("common", "computer_science", "applied_informatics"), nullable=False
-    )
+        db.Enum(
+            "common",
+            "computer_science",
+            "applied_informatics"),
+        nullable=False)
 
 
 class AuditLog(db.Model):
@@ -600,16 +646,6 @@ class AuditLog(db.Model):
     old_values = db.Column(JSON)
     new_values = db.Column(JSON)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class CaptchaSession(db.Model):
-    __tablename__ = "captcha_sessions"
-
-    session_id = db.Column(db.String(255), primary_key=True)
-    captcha_text = db.Column(db.String(10))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime)
-    is_verified = db.Column(db.Boolean, default=False)
 
 
 # ============================================================
@@ -648,7 +684,10 @@ class QuestionSection(db.Model):
     section_description = db.Column(db.Text)
     display_order = db.Column(db.Integer, nullable=False)
     is_visible = db.Column(db.Boolean, default=True)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -674,16 +713,18 @@ class QuestionPassage(db.Model):
     __tablename__ = "question_passages"
 
     passage_id = db.Column(db.Integer, primary_key=True)
-    section_id = db.Column(
-        db.Integer, db.ForeignKey("question_sections.section_id"), nullable=True
-    )
+    section_id = db.Column(db.Integer, db.ForeignKey(
+        "question_sections.section_id"), nullable=True)
     passage_text = db.Column(db.Text, nullable=False)
     passage_title = db.Column(db.String(255))
     author_name = db.Column(db.String(255))
     source_info = db.Column(db.String(500))
     display_order = db.Column(db.Integer)
     is_visible = db.Column(db.Boolean, default=True)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -711,12 +752,10 @@ class QuestionMedia(db.Model):
     question_id = db.Column(
         db.Integer, db.ForeignKey("questions.question_id"), nullable=True
     )
-    section_id = db.Column(
-        db.Integer, db.ForeignKey("question_sections.section_id"), nullable=True
-    )
-    passage_id = db.Column(
-        db.Integer, db.ForeignKey("question_passages.passage_id"), nullable=True
-    )
+    section_id = db.Column(db.Integer, db.ForeignKey(
+        "question_sections.section_id"), nullable=True)
+    passage_id = db.Column(db.Integer, db.ForeignKey(
+        "question_passages.passage_id"), nullable=True)
     media_type = db.Column(
         db.Enum("image", "audio", "video", "document"), default="image"
     )
@@ -727,7 +766,10 @@ class QuestionMedia(db.Model):
     alt_text = db.Column(db.Text)
     caption = db.Column(db.Text)
     display_order = db.Column(db.Integer)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     question = db.relationship(
@@ -750,7 +792,10 @@ class MediaUploadLog(db.Model):
     media_id = db.Column(
         db.Integer, db.ForeignKey("question_media.media_id"), nullable=True
     )
-    upload_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    upload_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     original_filename = db.Column(db.String(500))
     stored_filename = db.Column(db.String(500))
     file_path = db.Column(db.String(1000))
@@ -772,7 +817,10 @@ class RichTextTemplate(db.Model):
     preview_text = db.Column(db.String(500))
     category = db.Column(db.String(100))
     is_active = db.Column(db.Boolean, default=True)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=True)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     creator = db.relationship("User", foreign_keys=[created_by])
@@ -786,7 +834,10 @@ class QuestionComment(db.Model):
         db.Integer, db.ForeignKey("questions.question_id"), nullable=False
     )
     comment_text = db.Column(db.Text, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -803,7 +854,10 @@ class QuestionEditHistory(db.Model):
     question_id = db.Column(
         db.Integer, db.ForeignKey("questions.question_id"), nullable=False
     )
-    edited_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    edited_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     old_data = db.Column(JSON)
     new_data = db.Column(JSON)
     change_type = db.Column(db.String(50))
@@ -820,9 +874,8 @@ class QuestionMultiSection(db.Model):
     question_id = db.Column(
         db.Integer, db.ForeignKey("questions.question_id"), nullable=False
     )
-    section_id = db.Column(
-        db.Integer, db.ForeignKey("question_sections.section_id"), nullable=False
-    )
+    section_id = db.Column(db.Integer, db.ForeignKey(
+        "question_sections.section_id"), nullable=False)
     display_order = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -840,7 +893,10 @@ class QuestionTemplate(db.Model):
     subject_id = db.Column(
         db.Integer, db.ForeignKey("subjects.subject_id"), nullable=True
     )
-    created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id"),
+        nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 

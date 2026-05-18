@@ -29,7 +29,8 @@ def grader_required(f):
     def decorated_function(*args, **kwargs):
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
-        teacher = Teacher.query.filter_by(user_id=user_id).first() if user else None
+        teacher = Teacher.query.filter_by(
+            user_id=user_id).first() if user else None
         if (
             not user
             or user.role != "teacher"
@@ -80,10 +81,10 @@ def get_essays_for_grading():
                 query.join(
                     StudentResponse,
                     EssayGrade.response_id == StudentResponse.response_id,
-                )
-                .join(ExamAttempt, StudentResponse.attempt_id == ExamAttempt.attempt_id)
-                .filter(ExamAttempt.exam_session_id == exam_session_id)
-            )
+                ) .join(
+                    ExamAttempt,
+                    StudentResponse.attempt_id == ExamAttempt.attempt_id) .filter(
+                    ExamAttempt.exam_session_id == exam_session_id))
 
         total = query.count()
         essays = query.paginate(page=page, per_page=limit, error_out=False)
@@ -92,7 +93,8 @@ def get_essays_for_grading():
         for essay in essays.items:
             response = StudentResponse.query.get(essay.response_id)
             attempt = response.attempt if response else None
-            question = Question.query.get(response.question_id) if response else None
+            question = Question.query.get(
+                response.question_id) if response else None
 
             data.append(
                 {
@@ -155,7 +157,8 @@ def get_essay_details(essay_grade_id):
 
         response = StudentResponse.query.get(essay.response_id)
         attempt = response.attempt if response else None
-        question = Question.query.get(response.question_id) if response else None
+        question = Question.query.get(
+            response.question_id) if response else None
 
         # TÍNH NĂNG MỚI: Lấy đáp án/hướng dẫn chấm từ database
         from app.models import Answer
@@ -245,7 +248,8 @@ def submit_essay_grade(essay_grade_id):
         max_score = float(question.points) if question else 10.0
 
         if not (0 <= data["score"] <= max_score):
-            return jsonify({"error": f"Score must be between 0 and {max_score}"}), 400
+            return jsonify(
+                {"error": f"Score must be between 0 and {max_score}"}), 400
 
         # Update essay grade
         essay.score = data["score"]
@@ -401,7 +405,8 @@ def finalize_essay_scores(attempt_id):
                             float(grades[0].score) + float(grades[1].score)
                         ) / 2
                 else:
-                    avg_score = (float(grades[0].score) + float(grades[1].score)) / 2
+                    avg_score = (
+                        float(grades[0].score) + float(grades[1].score)) / 2
             else:
                 # Single grader or average of all available
                 avg_score = sum(float(g.score) for g in grades) / len(grades)
@@ -460,10 +465,10 @@ def get_grading_statistics():
                 query.join(
                     StudentResponse,
                     EssayGrade.response_id == StudentResponse.response_id,
-                )
-                .join(ExamAttempt, StudentResponse.attempt_id == ExamAttempt.attempt_id)
-                .filter(ExamAttempt.exam_session_id == exam_session_id)
-            )
+                ) .join(
+                    ExamAttempt,
+                    StudentResponse.attempt_id == ExamAttempt.attempt_id) .filter(
+                    ExamAttempt.exam_session_id == exam_session_id))
 
         total = query.count()
         graded = query.filter(EssayGrade.final_status == "completed").count()
@@ -476,8 +481,7 @@ def get_grading_statistics():
                     "graded": graded,
                     "pending": pending,
                     "grading_progress": f"{graded}/{total}" if total > 0 else "0/0",
-                }
-            ),
+                }),
             200,
         )
 

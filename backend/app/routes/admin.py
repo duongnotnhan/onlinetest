@@ -54,7 +54,8 @@ def get_dashboard():
     try:
         # Count statistics
         total_teachers = Teacher.query.count()
-        pending_teachers = Teacher.query.filter_by(approval_status="pending").count()
+        pending_teachers = Teacher.query.filter_by(
+            approval_status="pending").count()
         total_schools = School.query.count()
         total_students = Student.query.count()
         active_sessions = ExamSession.query.filter_by(
@@ -129,10 +130,8 @@ def get_teachers():
                     "subject_specialty": teacher.subject_specialty,
                     "approval_status": teacher.approval_status,
                     "created_at": (
-                        teacher.created_at.isoformat() if teacher.created_at else None
-                    ),
-                }
-            )
+                        teacher.created_at.isoformat() if teacher.created_at else None),
+                })
 
         return (
             jsonify(
@@ -302,7 +301,8 @@ def create_exam_session():
         end_date = datetime.strptime(data["end_date"], "%Y-%m-%d").date()
 
         if start_date >= end_date:
-            return jsonify({"error": "start_date must be before end_date"}), 400
+            return jsonify(
+                {"error": "start_date must be before end_date"}), 400
 
         user_id = get_jwt_identity()
         session = ExamSession(
@@ -345,7 +345,8 @@ def get_exam_session_detail(session_id):
         if not session:
             return jsonify({"error": "Exam session not found"}), 404
 
-        schedules = ExamSchedule.query.filter_by(exam_session_id=session_id).all()
+        schedules = ExamSchedule.query.filter_by(
+            exam_session_id=session_id).all()
 
         schedule_data = []
         for schedule in schedules:
@@ -373,16 +374,13 @@ def get_exam_session_detail(session_id):
                     "session_name": session.session_name,
                     "session_type": session.session_type,
                     "start_date": (
-                        session.start_date.isoformat() if session.start_date else None
-                    ),
+                        session.start_date.isoformat() if session.start_date else None),
                     "end_date": (
-                        session.end_date.isoformat() if session.end_date else None
-                    ),
+                        session.end_date.isoformat() if session.end_date else None),
                     "is_published": session.is_published,
                     "is_locked": session.is_locked,
                     "schedules": schedule_data,
-                }
-            ),
+                }),
             200,
         )
 
@@ -408,7 +406,8 @@ def publish_exam_session(session_id):
             exam_session_id=session_id
         ).count()
         if schedules_count == 0:
-            return jsonify({"error": "No schedules defined for this session"}), 400
+            return jsonify(
+                {"error": "No schedules defined for this session"}), 400
 
         user_id = get_jwt_identity()
         session.is_published = True
@@ -477,7 +476,8 @@ def create_exam_schedule():
 
         # Validate times
         if start_time >= end_time:
-            return jsonify({"error": "start_time must be before end_time"}), 400
+            return jsonify(
+                {"error": "start_time must be before end_time"}), 400
 
         # Calculate duration
         from datetime import datetime as dt_class
@@ -491,9 +491,7 @@ def create_exam_schedule():
                 jsonify(
                     {
                         "error": f"Duration must be at least {expected_duration} minutes for {
-                        subject.subject_name}"
-                    }
-                ),
+                            subject.subject_name}"}),
                 400,
             )
 
@@ -555,7 +553,8 @@ def get_makeup_registrations():
 
         query = query.order_by(MakeupRegistration.request_date.desc())
         total = query.count()
-        registrations = query.paginate(page=page, per_page=limit, error_out=False)
+        registrations = query.paginate(
+            page=page, per_page=limit, error_out=False)
 
         data = []
         for reg in registrations.items:
@@ -570,14 +569,11 @@ def get_makeup_registrations():
                     "subject_id": reg.subject_id,
                     "subject_name": subject.subject_name if subject else None,
                     "request_date": (
-                        reg.request_date.isoformat() if reg.request_date else None
-                    ),
+                        reg.request_date.isoformat() if reg.request_date else None),
                     "approval_status": reg.approval_status,
                     "scheduled_date": (
-                        reg.scheduled_date.isoformat() if reg.scheduled_date else None
-                    ),
-                }
-            )
+                        reg.scheduled_date.isoformat() if reg.scheduled_date else None),
+                })
 
         return (
             jsonify(
@@ -616,12 +612,16 @@ def approve_makeup_registration(reg_id):
             return jsonify({"error": "Registration not found"}), 404
 
         # Parse and validate times
-        scheduled_date = datetime.strptime(data["scheduled_date"], "%Y-%m-%d").date()
-        start_time = datetime.strptime(data["scheduled_start_time"], "%H:%M").time()
-        end_time = datetime.strptime(data["scheduled_end_time"], "%H:%M").time()
+        scheduled_date = datetime.strptime(
+            data["scheduled_date"], "%Y-%m-%d").date()
+        start_time = datetime.strptime(
+            data["scheduled_start_time"], "%H:%M").time()
+        end_time = datetime.strptime(
+            data["scheduled_end_time"], "%H:%M").time()
 
         if start_time >= end_time:
-            return jsonify({"error": "start_time must be before end_time"}), 400
+            return jsonify(
+                {"error": "start_time must be before end_time"}), 400
 
         session = ExamSession.query.get(registration.exam_session_id)
         subject = Subject.query.get(registration.subject_id)
@@ -648,8 +648,8 @@ def approve_makeup_registration(reg_id):
             and duration_minutes != subject.duration_minutes
         ):
             return jsonify({"error": f"Duration must be {
-                        subject.duration_minutes} minutes for {
-                        subject.subject_name}"}), 400
+                subject.duration_minutes} minutes for {
+                subject.subject_name}"}), 400
 
         user_id = get_jwt_identity()
         registration.approval_status = "approved"
@@ -709,7 +709,8 @@ def reject_makeup_registration(reg_id):
 # ============================================================
 
 
-@admin_bp.route("/exam-sessions/<int:session_id>/publish-results", methods=["POST"])
+@admin_bp.route("/exam-sessions/<int:session_id>/publish-results",
+                methods=["POST"])
 @jwt_required()
 @admin_required
 def publish_exam_results(session_id):
@@ -1062,18 +1063,15 @@ def get_students():
         for student in students.items:
             user = User.query.get(student.user_id)
             school = School.query.get(student.school_id)
-            data.append(
-                {
-                    "student_id": student.student_id,
-                    "cccd": student.cccd,
-                    "full_name": student.full_name,
-                    "email": user.email if user else None,
-                    "phone": student.phone,
-                    "class_name": student.class_name,
-                    "school_name": _school_display_name(school) if school else None,
-                    "is_active": user.is_active if user else False,
-                }
-            )
+            data.append({"student_id": student.student_id,
+                         "cccd": student.cccd,
+                         "full_name": student.full_name,
+                         "email": user.email if user else None,
+                         "phone": student.phone,
+                         "class_name": student.class_name,
+                         "school_name": _school_display_name(school) if school else None,
+                         "is_active": user.is_active if user else False,
+                         })
 
         return (
             jsonify(
@@ -1108,9 +1106,8 @@ def create_teacher_account():
         if not school:
             return jsonify({"error": "School not found"}), 404
 
-        temp_password = (
-            data.get("temporary_password") or f"Temp@{str(data['username'])[-6:]}"
-        )
+        temp_password = (data.get("temporary_password")
+                         or f"Temp@{str(data['username'])[-6:]}")
         user = User(
             username=data["username"],
             email=data.get("email"),
@@ -1254,13 +1251,16 @@ def get_essay_assignments():
             Student.school_id.label("student_school_id"),
             Question.question_number,
             Subject.subject_name,
-        )
-        .join(ExamAttempt, StudentResponse.attempt_id == ExamAttempt.attempt_id)
-        .join(Student, ExamAttempt.student_id == Student.student_id)
-        .join(Question, StudentResponse.question_id == Question.question_id)
-        .join(Subject, ExamAttempt.subject_id == Subject.subject_id)
-        .filter(Question.question_type == "essay")
-    )
+        ) .join(
+            ExamAttempt,
+            StudentResponse.attempt_id == ExamAttempt.attempt_id) .join(
+                Student,
+                ExamAttempt.student_id == Student.student_id) .join(
+                    Question,
+                    StudentResponse.question_id == Question.question_id) .join(
+                        Subject,
+                        ExamAttempt.subject_id == Subject.subject_id) .filter(
+                            Question.question_type == "essay"))
 
     if session_id:
         query = query.filter(ExamAttempt.exam_session_id == session_id)
@@ -1280,9 +1280,9 @@ def get_essay_assignments():
                     "grader_name": grader_user.full_name if grader_user else "Unknown",
                     "grading_order": g.grading_order,
                     "status": g.final_status,
-                    "score": float(g.score) if g.score is not None else None,
-                }
-            )
+                    "score": float(
+                        g.score) if g.score is not None else None,
+                })
 
         data.append(
             {
@@ -1346,7 +1346,8 @@ def assign_grader():
 
     if grade:
         if grade.final_status == "completed":
-            return jsonify({"error": "Không thể phân công lại bài đã chấm xong"}), 400
+            return jsonify(
+                {"error": "Không thể phân công lại bài đã chấm xong"}), 400
         grade.grader_id = grader_id
     else:
         grade = EssayGrade(
@@ -1395,8 +1396,7 @@ def force_submit_overdue():
                 {
                     "success": True,
                     "message": f"Đã quét và tự động thu {result} bài thi quá hạn.",
-                }
-            ),
+                }),
             200,
         )
 

@@ -74,7 +74,9 @@ class ExamSectionService:
                     .order_by(QuestionSection.display_order.desc())
                     .first()
                 )
-                display_order = (last_section.display_order + 1) if last_section else 1
+                display_order = (
+                    last_section.display_order +
+                    1) if last_section else 1
 
             # Lấy section type nếu có
             section_type_id = None
@@ -229,7 +231,9 @@ class ExamSectionService:
                     .order_by(QuestionPassage.display_order.desc())
                     .first()
                 )
-                display_order = (last_passage.display_order + 1) if last_passage else 1
+                display_order = (
+                    last_passage.display_order +
+                    1) if last_passage else 1
 
             # Tạo passage
             passage = QuestionPassage(
@@ -256,10 +260,10 @@ class ExamSectionService:
     def get_passages_by_section(section_id: int) -> List[QuestionPassage]:
         """Lấy tất cả passage của một section"""
         return (
-            QuestionPassage.query.filter_by(section_id=section_id, is_visible=True)
-            .order_by(QuestionPassage.display_order)
-            .all()
-        )
+            QuestionPassage.query.filter_by(
+                section_id=section_id,
+                is_visible=True) .order_by(
+                QuestionPassage.display_order) .all())
 
     @staticmethod
     def add_question_to_section(

@@ -121,20 +121,21 @@ def get_dashboard():
             "full_name": student.full_name,
             "gender": student.gender,
             "date_of_birth": (
-                student.date_of_birth.isoformat() if student.date_of_birth else None
-            ),
+                student.date_of_birth.isoformat() if student.date_of_birth else None),
             "address": student.address,
             "permanent_address": student.permanent_address,
             "phone": student.phone,
             "class_name": student.class_name,
             "school_name": student.school.school_name if student.school else None,
-            "has_profile_photo": bool(student.profile_photo),
+            "has_profile_photo": bool(
+                student.profile_photo),
         }
 
         schedules_response, status = get_exam_schedule()
         schedules = (
-            schedules_response.get_json().get("schedules", []) if status == 200 else []
-        )
+            schedules_response.get_json().get(
+                "schedules",
+                []) if status == 200 else [])
 
         return jsonify({"profile": profile, "schedules": schedules}), 200
     except Exception as e:
@@ -158,19 +159,17 @@ def get_exam_schedule():
 
         for session in sessions:
             registrations = StudentSubjectRegistration.query.filter_by(
-                student_id=student.student_id, exam_session_id=session.exam_session_id
-            ).all()
+                student_id=student.student_id, exam_session_id=session.exam_session_id).all()
 
             for reg in registrations:
                 schedule = ExamSchedule.query.filter_by(
-                    exam_session_id=session.exam_session_id, subject_id=reg.subject_id
-                ).first()
+                    exam_session_id=session.exam_session_id,
+                    subject_id=reg.subject_id).first()
 
                 if schedule:
                     subject = Subject.query.get(reg.subject_id)
                     attempt = ExamAttempt.query.filter_by(
-                        student_id=student.student_id, schedule_id=schedule.schedule_id
-                    ).first()
+                        student_id=student.student_id, schedule_id=schedule.schedule_id).first()
 
                     status = "upcoming"
                     score = None
@@ -238,7 +237,8 @@ def start_exam(schedule_id):
             exam_session_id=schedule.exam_session_id,
         ).first()
         if not registration:
-            return jsonify({"error": "Student not registered for this exam"}), 403
+            return jsonify(
+                {"error": "Student not registered for this exam"}), 403
 
         existing_attempt = ExamAttempt.query.filter_by(
             student_id=student.student_id, schedule_id=schedule_id
@@ -247,8 +247,10 @@ def start_exam(schedule_id):
             return jsonify({"error": "Already attempted this exam"}), 400
 
         now = datetime.utcnow()
-        exam_datetime_start = datetime.combine(schedule.exam_date, schedule.start_time)
-        exam_datetime_end = datetime.combine(schedule.exam_date, schedule.end_time)
+        exam_datetime_start = datetime.combine(
+            schedule.exam_date, schedule.start_time)
+        exam_datetime_end = datetime.combine(
+            schedule.exam_date, schedule.end_time)
 
         session = ExamSession.query.get(schedule.exam_session_id)
         if session.is_locked:
@@ -260,9 +262,11 @@ def start_exam(schedule_id):
             exam_datetime_end = now + timedelta(minutes=duration)
         else:
             if not (
-                exam_datetime_start - timedelta(minutes=5) <= now <= exam_datetime_end
-            ):
-                return jsonify({"error": "Exam is not available at this time"}), 400
+                exam_datetime_start -
+                timedelta(
+                    minutes=5) <= now <= exam_datetime_end):
+                return jsonify(
+                    {"error": "Exam is not available at this time"}), 400
 
             # Sửa lỗi thời gian: Bắt đầu tính giờ từ mốc now + duration
             calculated_end_time = now + timedelta(minutes=duration)
@@ -416,13 +420,13 @@ def get_exam_paper(attempt_id):
             new_q_num += 1
 
             if q.question_type == "multiple_choice":
-                choices = AnswerChoice.query.filter_by(question_id=q.question_id).all()
+                choices = AnswerChoice.query.filter_by(
+                    question_id=q.question_id).all()
 
                 shuffle_choices = True
                 if q.section_id:
                     sec = next(
-                        (s for s in sections if s.section_id == q.section_id), None
-                    )
+                        (s for s in sections if s.section_id == q.section_id), None)
                     if sec and sec.section_description:
                         try:
                             meta = json.loads(sec.section_description)
@@ -463,8 +467,7 @@ def get_exam_paper(attempt_id):
                 shuffle_items = True
                 if q.section_id:
                     sec = next(
-                        (s for s in sections if s.section_id == q.section_id), None
-                    )
+                        (s for s in sections if s.section_id == q.section_id), None)
                     if sec and sec.section_description:
                         try:
                             meta = json.loads(sec.section_description)
@@ -484,12 +487,12 @@ def get_exam_paper(attempt_id):
 
                 if shuffle_items and paper.randomization_enabled:
                     rng = random.Random(
-                        generated_paper.randomization_seed + q.question_id + 1000
-                    )
+                        generated_paper.randomization_seed + q.question_id + 1000)
                     labels = [it["item_label"] for it in item_list]
                     rng.shuffle(item_list)
                     for i, it in enumerate(item_list):
-                        it["item_label"] = labels[i] if i < len(labels) else chr(97 + i)
+                        it["item_label"] = labels[i] if i < len(
+                            labels) else chr(97 + i)
 
                 q_data["items"] = item_list
 
@@ -504,7 +507,8 @@ def get_exam_paper(attempt_id):
             display_code = generated_paper.paper_code_version
 
         # KHÔI PHỤC TIẾN TRÌNH LÀM BÀI
-        saved_responses = StudentResponse.query.filter_by(attempt_id=attempt_id).all()
+        saved_responses = StudentResponse.query.filter_by(
+            attempt_id=attempt_id).all()
         saved_answers_dict = {}
         for r in saved_responses:
             if r.response_value is not None:
@@ -515,7 +519,8 @@ def get_exam_paper(attempt_id):
                 )
                 if rtype == "true_false":
                     try:
-                        saved_answers_dict[r.question_id] = json.loads(r.response_value)
+                        saved_answers_dict[r.question_id] = json.loads(
+                            r.response_value)
                     except BaseException:
                         saved_answers_dict[r.question_id] = r.response_value
                 else:
@@ -529,7 +534,8 @@ def get_exam_paper(attempt_id):
                     "subject_name": Subject.query.get(attempt.subject_id).subject_name,
                     "paper_code": display_code,
                     "total_points": (
-                        float(paper.total_points) if paper.total_points else 10.0
+                        float(
+                            paper.total_points) if paper.total_points else 10.0
                     ),
                     "reading_material": paper.reading_material,
                     # GỬI SỐ GIÂY
@@ -549,7 +555,8 @@ def get_exam_paper(attempt_id):
         return jsonify({"error": str(e)}), 500
 
 
-@student_bp.route("/exam-attempts/<int:attempt_id>/responses", methods=["POST"])
+@student_bp.route("/exam-attempts/<int:attempt_id>/responses",
+                  methods=["POST"])
 @jwt_required()
 def submit_response(attempt_id):
     """Submit response to question"""
@@ -610,8 +617,7 @@ def submit_response(attempt_id):
             return jsonify({"error": "Question not found"}), 404
 
         if question.question_type == "short_answer" and not _is_valid_four_cell_answer(
-            data.get("student_answer")
-        ):
+                data.get("student_answer")):
             return (
                 jsonify(
                     {
@@ -629,7 +635,8 @@ def submit_response(attempt_id):
             response = StudentResponse(
                 attempt_id=attempt_id,
                 question_id=data["question_id"],
-                response_type=_response_type_for_question(question.question_type),
+                response_type=_response_type_for_question(
+                    question.question_type),
                 response_value=response_value,
             )
             db.session.add(response)
@@ -731,13 +738,16 @@ def get_attempt_status(attempt_id):
         schedule = ExamSchedule.query.get(attempt.schedule_id)
         subject = Subject.query.get(attempt.subject_id)
 
-        response_count = StudentResponse.query.filter_by(attempt_id=attempt_id).count()
+        response_count = StudentResponse.query.filter_by(
+            attempt_id=attempt_id).count()
 
         now = datetime.utcnow()
         exam_datetime_end = attempt.end_time or datetime.combine(
             schedule.exam_date, schedule.end_time
         )
-        time_remaining = max(0, int((exam_datetime_end - now).total_seconds() / 60))
+        time_remaining = max(
+            0, int(
+                (exam_datetime_end - now).total_seconds() / 60))
 
         return (
             jsonify(
@@ -851,8 +861,7 @@ def _assign_essay_graders(attempt):
 
     # Ưu tiên 1: Chéo trường (Giám khảo khác trường thí sinh)
     eligible_cross_school = [
-        t.user_id for t in grader_teachers if t.school_id != attempt.student.school_id
-    ]
+        t.user_id for t in grader_teachers if t.school_id != attempt.student.school_id]
 
     # Nếu không đủ 2 người chéo trường, lấy tất cả giáo viên Ngữ Văn (chấp
     # nhận chấm cùng trường)
@@ -867,7 +876,8 @@ def _assign_essay_graders(attempt):
         return
 
     for response in essay_responses:
-        existing = EssayGrade.query.filter_by(response_id=response.response_id).count()
+        existing = EssayGrade.query.filter_by(
+            response_id=response.response_id).count()
         if existing:
             continue
 

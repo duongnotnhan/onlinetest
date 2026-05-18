@@ -187,60 +187,65 @@ def export_system_data(entity_type, export_type):
 
                 try:
                     students = (
-                        db.session.query(Student, School)
-                        .outerjoin(School, Student.school_id == School.school_id)
-                        .order_by(
+                        db.session.query(
+                            Student,
+                            School) .outerjoin(
+                            School,
+                            Student.school_id == School.school_id) .order_by(
                             Student.province_id,
                             Student.ward_id,
                             School.school_name,
                             Student.class_name,
                             Student.full_name,
-                        )
-                        .all()
-                    )
+                        ) .all())
                 except Exception:
                     db.session.rollback()
                     students = (
-                        db.session.query(Student, School)
-                        .outerjoin(School, Student.school_id == School.school_id)
-                        .order_by(
-                            School.school_name, Student.class_name, Student.full_name
-                        )
-                        .all()
-                    )
+                        db.session.query(
+                            Student,
+                            School) .outerjoin(
+                            School,
+                            Student.school_id == School.school_id) .order_by(
+                            School.school_name,
+                            Student.class_name,
+                            Student.full_name) .all())
 
                 for stu, sch in students:
                     prov_id = getattr(
                         stu, "province_id", getattr(sch, "province_id", "")
                     )
-                    ward_id = getattr(stu, "ward_id", getattr(sch, "ward_id", ""))
+                    ward_id = getattr(
+                        stu, "ward_id", getattr(
+                            sch, "ward_id", ""))
                     prov_name = (
                         getattr(stu.province, "name", prov_id)
                         if hasattr(stu, "province")
                         else prov_id
                     )
                     dist_name = (
-                        getattr(stu.district, "name", getattr(stu, "district_id", ""))
-                        if hasattr(stu, "district")
-                        else ""
-                    )
+                        getattr(
+                            stu.district,
+                            "name",
+                            getattr(
+                                stu,
+                                "district_id",
+                                "")) if hasattr(
+                            stu,
+                            "district") else "")
 
-                    data_rows.append(
-                        [
-                            prov_id,
-                            ward_id,
-                            prov_name,
-                            dist_name,
-                            sch.school_name if sch else "Chưa gán trường",
-                            stu.student_code or "",
-                            stu.full_name or "",
-                            stu.cccd or "",
-                            "Nam" if stu.gender == "male" else "Nữ",
-                            str(stu.date_of_birth) if stu.date_of_birth else "",
-                            stu.class_name or "",
-                            stu.address or "",
-                        ]
-                    )
+                    data_rows.append([prov_id,
+                                      ward_id,
+                                      prov_name,
+                                      dist_name,
+                                      sch.school_name if sch else "Chưa gán trường",
+                                      stu.student_code or "",
+                                      stu.full_name or "",
+                                      stu.cccd or "",
+                                      "Nam" if stu.gender == "male" else "Nữ",
+                                      str(stu.date_of_birth) if stu.date_of_birth else "",
+                                      stu.class_name or "",
+                                      stu.address or "",
+                                      ])
 
             elif current_user.role == "teacher":
                 school_id = get_school_id_for_user(current_user)
@@ -261,7 +266,8 @@ def export_system_data(entity_type, export_type):
                     query = query.filter_by(class_name=req_data["class_name"])
                     filename += f"_{req_data['class_name']}"
 
-                students = query.order_by(Student.class_name, Student.full_name).all()
+                students = query.order_by(
+                    Student.class_name, Student.full_name).all()
                 for s in students:
                     data_rows.append(
                         [
@@ -283,10 +289,12 @@ def export_system_data(entity_type, export_type):
             session_id = req_data.get("exam_session_id") or request.args.get(
                 "exam_session_id"
             )
-            subject_id = req_data.get("subject_id") or request.args.get("subject_id")
+            subject_id = req_data.get(
+                "subject_id") or request.args.get("subject_id")
 
             if not session_id:
-                return jsonify({"error": "Vui lòng chọn kỳ thi để xuất kết quả"}), 400
+                return jsonify(
+                    {"error": "Vui lòng chọn kỳ thi để xuất kết quả"}), 400
 
             headers = [
                 "Số Thứ Tự",
@@ -304,11 +312,15 @@ def export_system_data(entity_type, export_type):
             filename = f"Ket_Qua_Thi_Ky_Thi_{session_id}"
 
             query = (
-                db.session.query(ExamAttempt, Student, Subject)
-                .join(Student, ExamAttempt.student_id == Student.student_id)
-                .outerjoin(Subject, ExamAttempt.subject_id == Subject.subject_id)
-                .filter(ExamAttempt.exam_session_id == int(session_id))
-            )
+                db.session.query(
+                    ExamAttempt,
+                    Student,
+                    Subject) .join(
+                    Student,
+                    ExamAttempt.student_id == Student.student_id) .outerjoin(
+                    Subject,
+                    ExamAttempt.subject_id == Subject.subject_id) .filter(
+                    ExamAttempt.exam_session_id == int(session_id)))
 
             if current_user.role == "teacher":
                 query = query.filter(
@@ -318,28 +330,23 @@ def export_system_data(entity_type, export_type):
             if subject_id:
                 query = query.filter(ExamAttempt.subject_id == int(subject_id))
 
-            attempts = query.order_by(Student.class_name, Student.full_name).all()
+            attempts = query.order_by(
+                Student.class_name, Student.full_name).all()
 
             for idx, (att, stu, subj) in enumerate(attempts, start=1):
-                data_rows.append(
-                    [
-                        idx,
-                        stu.student_code or "",
-                        stu.full_name,
-                        stu.cccd,
-                        str(stu.date_of_birth) if stu.date_of_birth else "",
-                        "Nam" if stu.gender == "male" else "Nữ",
-                        stu.class_name or "",
-                        stu.school.name if stu.school else "",
-                        subj.subject_name if subj else f"Mã: {att.subject_id}",
-                        float(att.total_score) if att.total_score is not None else 0.0,
-                        (
-                            "Đã hoàn thành"
-                            if att.status in ["graded", "completed"]
-                            else "Chưa nộp bài hoặc bài nộp không hợp lệ"
-                        ),
-                    ]
-                )
+                data_rows.append([idx,
+                                  stu.student_code or "",
+                                  stu.full_name,
+                                  stu.cccd,
+                                  str(stu.date_of_birth) if stu.date_of_birth else "",
+                                  "Nam" if stu.gender == "male" else "Nữ",
+                                  stu.class_name or "",
+                                  stu.school.name if stu.school else "",
+                                  subj.subject_name if subj else f"Mã: {att.subject_id}",
+                                  float(att.total_score) if att.total_score is not None else 0.0,
+                                  ("Đã hoàn thành" if att.status in ["graded",
+                                                                     "completed"] else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
+                                  ])
 
         # -----------------------------------------------
         # XUẤT KẾT QUẢ THI CỦA TOÀN TRƯỜNG (DÀNH CHO GVQL)
@@ -362,14 +369,18 @@ def export_system_data(entity_type, export_type):
             filename = f"Ket_Qua_Thi_Cua_Truong"
 
             query = (
-                db.session.query(ExamAttempt, Student, Subject, ExamSession)
-                .join(Student, ExamAttempt.student_id == Student.student_id)
-                .outerjoin(Subject, ExamAttempt.subject_id == Subject.subject_id)
-                .outerjoin(
+                db.session.query(
+                    ExamAttempt,
+                    Student,
+                    Subject,
+                    ExamSession) .join(
+                    Student,
+                    ExamAttempt.student_id == Student.student_id) .outerjoin(
+                    Subject,
+                    ExamAttempt.subject_id == Subject.subject_id) .outerjoin(
                     ExamSession,
                     ExamAttempt.exam_session_id == ExamSession.exam_session_id,
-                )
-            )
+                ))
 
             if current_user.role == "teacher":
                 school_id = get_school_id_for_user(current_user)
@@ -388,31 +399,27 @@ def export_system_data(entity_type, export_type):
                 "exam_session_id"
             )
             if session_id:
-                query = query.filter(ExamAttempt.exam_session_id == int(session_id))
+                query = query.filter(
+                    ExamAttempt.exam_session_id == int(session_id))
                 filename += f"_KyThi_{session_id}"
 
-            results = query.order_by(Student.class_name, Student.full_name).all()
+            results = query.order_by(
+                Student.class_name, Student.full_name).all()
 
             for idx, (att, stu, subj, sess) in enumerate(results, start=1):
-                data_rows.append(
-                    [
-                        idx,
-                        stu.cccd or "",
-                        stu.full_name or "",
-                        str(stu.date_of_birth) if stu.date_of_birth else "",
-                        "Nam" if stu.gender == "male" else "Nữ",
-                        stu.class_name or "",
-                        subj.subject_code if subj else "",
-                        subj.subject_name if subj else "",
-                        float(att.total_score) if att.total_score is not None else 0.0,
-                        sess.session_name if sess else "",
-                        (
-                            "Đã hoàn thành"
-                            if att.status in ["graded", "completed"]
-                            else "Chưa nộp bài hoặc bài nộp không hợp lệ"
-                        ),
-                    ]
-                )
+                data_rows.append([idx,
+                                  stu.cccd or "",
+                                  stu.full_name or "",
+                                  str(stu.date_of_birth) if stu.date_of_birth else "",
+                                  "Nam" if stu.gender == "male" else "Nữ",
+                                  stu.class_name or "",
+                                  subj.subject_code if subj else "",
+                                  subj.subject_name if subj else "",
+                                  float(att.total_score) if att.total_score is not None else 0.0,
+                                  sess.session_name if sess else "",
+                                  ("Đã hoàn thành" if att.status in ["graded",
+                                                                     "completed"] else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
+                                  ])
 
         else:
             return jsonify({"error": "Loại dữ liệu không hợp lệ"}), 400
@@ -423,7 +430,10 @@ def export_system_data(entity_type, export_type):
         if export_type == "csv":
             output = io.StringIO()
             output.write("\ufeff")
-            writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+            writer = csv.writer(
+                output,
+                delimiter=";",
+                quoting=csv.QUOTE_MINIMAL)
             writer.writerow(headers)
             writer.writerows(data_rows)
             output.seek(0)
@@ -440,7 +450,11 @@ def export_system_data(entity_type, export_type):
             ws.title = "Dữ Liệu Hệ Thống"
             ws.views.sheetView[0].showGridLines = True
 
-            font_header = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+            font_header = Font(
+                name="Arial",
+                size=11,
+                bold=True,
+                color="FFFFFF")
             fill_header = PatternFill(
                 start_color="1E3A8A", end_color="1E3A8A", fill_type="solid"
             )  # Xanh biển
@@ -457,7 +471,8 @@ def export_system_data(entity_type, export_type):
                 cell = ws.cell(row=1, column=col_idx)
                 cell.font = font_header
                 cell.fill = fill_header
-                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.alignment = Alignment(
+                    horizontal="center", vertical="center")
                 cell.border = thin_border
 
             for r_data in data_rows:
@@ -470,13 +485,14 @@ def export_system_data(entity_type, export_type):
                     if isinstance(r_data[col_idx - 1], (int, float)):
                         cell.alignment = Alignment(horizontal="right")
                     else:
-                        cell.alignment = Alignment(horizontal="left", wrap_text=True)
+                        cell.alignment = Alignment(
+                            horizontal="left", wrap_text=True)
 
             for col in ws.columns:
-                max_len = max(
-                    (len(str(cell.value)) for cell in col if cell.value), default=0
-                )
-                ws.column_dimensions[col[0].column_letter].width = max(max_len + 2, 12)
+                max_len = max((len(str(cell.value))
+                               for cell in col if cell.value), default=0)
+                ws.column_dimensions[col[0].column_letter].width = max(
+                    max_len + 2, 12)
 
             file_stream = io.BytesIO()
             wb.save(file_stream)
@@ -493,4 +509,5 @@ def export_system_data(entity_type, export_type):
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Lỗi hệ thống khi trích xuất dữ liệu: {str(e)}"}), 500
+        return jsonify(
+            {"error": f"Lỗi hệ thống khi trích xuất dữ liệu: {str(e)}"}), 500
