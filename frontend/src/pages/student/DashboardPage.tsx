@@ -18,7 +18,7 @@ export default function StudentDashboard() {
         setProfile(response.data.profile);
         setExams(response.data.schedules || []);
       } catch (error) {
-        toast.error("Lỗi tải danh sách kỳ thi");
+        toast.error("Lỗi tải danh sách kỳ thi: " + (error as Error).message);
       } finally {
         setLoading(false);
       }
@@ -35,7 +35,7 @@ export default function StudentDashboard() {
     } catch (error: any) {
       toast.error(
         error.response?.data?.error ||
-          "Chưa đến giờ mở đề hoặc tài khoản không hợp lệ.",
+          "Chưa đến giờ mở đề hoặc tài khoản không hợp lệ: " + (error as Error).message,
       );
     }
   };

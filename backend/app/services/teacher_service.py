@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 
 from app import db
+from app.utils.others import remove_accents
 from app.models import (ExamSession, MakeupRegistration, Student,
                         StudentSubjectRegistration, Teacher, User)
 
@@ -34,7 +35,8 @@ class TeacherService:
             # Create user account
             username = cccd
             random.seed(teacher_user_id + int(cccd[-4:]))
-            temp_password = f"{full_name.split()[-1]}@{cccd[-6:]}@{random.randint(1000, 9999)}"
+            temp_password = f"{remove_accents(full_name).split()[-1]}@{cccd[-6:]}\
+                @{random.randint(1000, 9999)}"
 
             user = User(
                 username=username,
@@ -268,6 +270,7 @@ class StudentImportService:
 class StudentBulkService:
     """Service for bulk student operations"""
 
+
     @staticmethod
     def get_students_by_school(school_id, page=1, limit=20, search=None):
         """Get students of a school"""
@@ -286,7 +289,7 @@ class StudentBulkService:
         return total, students.items
 
     @staticmethod
-    def reset_student_password(student_id, teacher_user_id):
+    def reset_student_password(student_id, teacher_user_id, db_commit=True):
         """Reset student password"""
         try:
             teacher = Teacher.query.filter_by(user_id=teacher_user_id).first()
@@ -296,15 +299,60 @@ class StudentBulkService:
                 return False, "Student not found"
 
             # Generate temporary password
-            temp_password = f"Temp@{student.cccd[-6:]}"
+            full_name = remove_accents(student.full_name).split()
+            temp_password = f"{full_name[0]}@{student.cccd[-6:]}"
 
             user = User.query.get(student.user_id)
             user.set_password(temp_password)
             user.is_first_login = True
 
-            db.session.commit()
+            if db_commit:
+                db.session.commit()
 
             return True, temp_password
+        except Exception as e:
+            if db_commit:
+                db.session.rollback()
+            return False, str(e)
+
+    @staticmethod
+    def bulk_reset_password(student_ids, teacher_user_id):
+        """Bulk reset student passwords and return details for export"""
+        try:
+            teacher = Teacher.query.filter_by(user_id=teacher_user_id).first()
+            if not teacher:
+                return False, "Teacher not found"
+
+            updated = 0
+            errors = []
+            success_data = []  # Mảng thu thập dữ liệu phục vụ in file Excel
+
+            for student_id in student_ids:
+                status, result = StudentBulkService.reset_student_password(student_id, teacher_user_id, db_commit=False)
+                
+                if status:
+                    updated += 1
+                    student = Student.query.get(student_id)
+                    # result chính là chuỗi ký tự mật khẩu tạm thời trả về từ hàm trên
+                    success_data.append({
+                        "full_name": student.full_name,
+                        "cccd": student.cccd,
+                        "date_of_birth": student.date_of_birth,
+                        "class_name": student.class_name,
+                        "temp_password": result
+                    })
+                else:
+                    errors.append({"student_id": student_id, "error": result})
+
+            db.session.commit()
+            
+            # Trả về thêm mảng dữ liệu thành công
+            return True, {
+                "updated": updated, 
+                "errors": errors, 
+                "success_data": success_data
+            }
+            
         except Exception as e:
             db.session.rollback()
             return False, str(e)

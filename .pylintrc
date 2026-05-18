@@ -15,7 +15,6 @@ disable=
     no-name-in-module,
     redefined-outer-name,
     too-many-nested-blocks,
-    cyclic-import,
     too-many-arguments,
     too-many-lines,
     too-many-positional-arguments,

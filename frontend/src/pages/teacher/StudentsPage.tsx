@@ -73,8 +73,8 @@ export default function TeacherStudentsPage() {
     try {
       const response = await teacherAPI.getStudents();
       setStudents(response.data.data || []);
-    } catch (error: any) {
-      toast.error("Không thể tải danh sách thí sinh");
+    } catch (error) {
+      toast.error("Không thể tải danh sách thí sinh: " + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -202,6 +202,9 @@ export default function TeacherStudentsPage() {
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <FiDownloadCloud /> Tải mẫu CSV
+          </button>
+          <button onClick={() => teacherAPI.resetBulkPasswords(students.map(s => s.student_id))} className="btn-secondary flex items-center gap-2 text-sm bg-red-600 hover:bg-red-700 hover:text-white">
+            <FiRefreshCw size={18} /> Reset Toàn Bộ Mật Khẩu
           </button>
         </div>
       </div>

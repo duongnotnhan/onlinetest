@@ -67,7 +67,7 @@ export default function GradingAssignmentsPage() {
       const res = await adminAPI.getEssayAssignments(Number(sessionId));
       setAssignments(res.data.data || []);
     } catch (error) {
-      toast.error("Lỗi khi tải danh sách bài làm");
+      toast.error("Lỗi khi tải danh sách bài làm: " + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export default function GradingAssignmentsPage() {
       setShowModal(false);
       fetchAssignments();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Lỗi phân công");
+      toast.error(error.response?.data?.error || "Lỗi phân công: " + (error as Error).message);
     }
   };
 
@@ -98,7 +98,7 @@ export default function GradingAssignmentsPage() {
       toast.success("Đã thu hồi!");
       fetchAssignments();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Lỗi thu hồi");
+      toast.error(error.response?.data?.error || "Lỗi thu hồi: " + (error as Error).message);
     }
   };
 

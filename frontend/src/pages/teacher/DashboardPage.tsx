@@ -13,7 +13,7 @@ export default function TeacherDashboard() {
         const response = await teacherAPI.getDashboard();
         setDashboard(response.data);
       } catch (error) {
-        toast.error("Lỗi tải dữ liệu bảng điều khiển");
+        toast.error("Lỗi tải dữ liệu bảng điều khiển: " + (error as Error).message);
       } finally {
         setLoading(false);
       }

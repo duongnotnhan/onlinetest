@@ -2,6 +2,9 @@
 
 import csv
 import io
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from flask import send_file
 import re
 from datetime import datetime
 from functools import wraps
@@ -10,6 +13,8 @@ from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app import db
+from app.utils.others import remove_accents
+from app.services.teacher_service import StudentBulkService
 from app.models import (EssayGrade, ExamResult, ExamSession,
                         MakeupRegistration, School, Student,
                         StudentSubjectRegistration, Subject, Teacher, User)
@@ -645,7 +650,7 @@ def import_students():
                         row["date_of_birth"], "%Y-%m-%d"
                     ).date()
 
-                temp_password = f"{row['full_name'][:4].upper()}@{row['cccd'][-6:]}"
+                temp_password = f"{remove_accents(row['full_name'])[:4].upper()}@{row['cccd'][-6:]}"
 
                 new_user = User(
                     username=row["cccd"],
@@ -754,7 +759,10 @@ def reset_student_password(student_id):
         if not student or student.school_id != school_id:
             return jsonify({"error": "Student not found"}), 404
 
-        temp_password = f"{student.full_name[:4].upper()}@{student.cccd[-6:]}"
+        status, temp_password = StudentBulkService.reset_student_password(student_id, user_id)
+
+        if not status:
+            return jsonify({"error": temp_password}), 400
 
         student_user = User.query.get(student.user_id)
         student_user.set_password(temp_password)
@@ -771,6 +779,108 @@ def reset_student_password(student_id):
                 }
             ),
             200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@teacher_bp.route("/students/reset-bulk-passwords", methods=["POST"])
+@jwt_required()
+@teacher_required
+def reset_bulk_student_passwords():
+    """Reset students password to temporary and stream back an XLSX file"""
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json() or {}
+        student_ids = data.get("student_ids")
+
+        if not student_ids or not isinstance(student_ids, list):
+            return jsonify({"error": "Vui lòng cung cấp danh sách ID học sinh hợp lệ"}), 400
+
+        # Gọi Service xử lý nghiệp vụ đổi mật khẩu hàng loạt
+        status, result = StudentBulkService.bulk_reset_password(student_ids, user_id)
+
+        if not status:
+            return jsonify({"error": result}), 400
+
+        success_data = result.get("success_data", [])
+        
+        # Nếu không có học sinh nào cập nhật thành công, báo lỗi luôn không sinh file trống
+        if not success_data:
+            return jsonify({
+                "error": "Không có học sinh nào được cập nhật thành công",
+                "details": result.get("errors", [])
+            }), 400
+
+        # ----------------------------------------------------
+        # TIẾN HÀNH KHỞI TẠO FILE EXCEL ĐÚNG TIÊU CHUẨN MẪU
+        # ----------------------------------------------------
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Mật khẩu cấp lại"
+        ws.views.sheetView[0].showGridLines = True
+
+        # Định dạng Style bảng biểu thanh lịch, tối giản
+        font_header = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+        fill_header = PatternFill(start_color='1E3A8A', end_color='1E3A8A', fill_type='solid') # Xanh Navy chuyên nghiệp
+        font_body = Font(name='Arial', size=11)
+        thin_border = Border(
+            left=Side(style='thin', color='E2E8F0'), right=Side(style='thin', color='E2E8F0'),
+            top=Side(style='thin', color='E2E8F0'), bottom=Side(style='thin', color='E2E8F0')
+        )
+
+        # Ghi hàng Header chuẩn theo mẫu yêu cầu
+        headers = ['STT', 'HỌ VÀ TÊN', 'CCCD/ĐDCN', 'NGÀY/THÁNG/NĂM SINH', 'LỚP', 'MẬT KHẨU MỚI']
+        ws.append(headers)
+
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.font = font_header
+            cell.fill = fill_header
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = thin_border
+
+        # Đổ dữ liệu tài khoản và mật khẩu vào các dòng kế tiếp
+        for idx, student_info in enumerate(success_data, start=1):
+            dob_str = str(student_info['date_of_birth']) if student_info['date_of_birth'] else ''
+            
+            ws.append([
+                idx,
+                student_info['full_name'].upper() if student_info['full_name'] else '',
+                student_info['cccd'],
+                dob_str,
+                student_info['class_name'].upper() if student_info['class_name'] else '',
+                student_info['temp_password']
+            ])
+            
+            curr_row = ws.max_row
+            for col_idx in range(1, len(headers) + 1):
+                cell = ws.cell(row=curr_row, column=col_idx)
+                cell.font = font_body
+                cell.border = thin_border
+                
+                # Căn lề giữa cho các cột định danh ngắn, căn lề trái cho họ tên
+                if col_idx in [1, 3, 4, 5]:
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                else:
+                    cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        # Tự động co giãn cột vừa vặn độ dài ký tự
+        for col in ws.columns:
+            max_len = max((len(str(cell.value)) for cell in col if cell.value), default=0)
+            ws.column_dimensions[col[0].column_letter].width = max(max_len + 4, 12)
+
+        # Đóng gói đối tượng tệp nhị phân truyền thẳng về luồng tải của Client
+        file_stream = io.BytesIO()
+        wb.save(file_stream)
+        file_stream.seek(0)
+
+        return send_file(
+            file_stream,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name="Danh_Sach_Mat_Khau_Moi.xlsx"
         )
 
     except Exception as e:

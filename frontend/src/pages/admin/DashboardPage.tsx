@@ -21,7 +21,7 @@ export default function AdminDashboard() {
         const response = await adminAPI.getDashboard();
         setStats(response.data);
       } catch (error) {
-        toast.error("Lỗi khi tải dữ liệu tổng quan");
+        toast.error("Lỗi khi tải dữ liệu tổng quan: " + (error as Error).message);
       } finally {
         setLoading(false);
       }

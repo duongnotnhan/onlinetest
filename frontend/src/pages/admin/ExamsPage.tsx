@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import "katex/dist/katex.min.css";
-import { adminAPI, examAPI, uploadAPI } from "@/api";
+import { adminAPI, examAPI, uploadAPI, exportAPI } from "@/api";
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -20,6 +20,7 @@ import {
   FiEye,
   FiUpload,
   FiMenu,
+  FiDownload,
 } from "react-icons/fi";
 
 interface Session {
@@ -358,8 +359,8 @@ function MarkdownBox({
       const response = await uploadAPI.uploadImage(file);
       insertAtCursor(`\n\n![${file.name}](${response.data.url})\n`);
       toast.success("Đính kèm ảnh thành công");
-    } catch (error: any) {
-      toast.error("Lỗi tải ảnh");
+    } catch (error) {
+      toast.error("Lỗi tải ảnh: " + (error as Error).message);
     } finally {
       setUploading(false);
     }
@@ -501,7 +502,7 @@ export default function ExamsPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [selectedPaperId, setSelectedPaperId] = useState<number | null>(null);
+  const [,setSelectedPaperId] = useState<number | null>(null);
   const [paperDetail, setPaperDetail] = useState<PaperDetail | null>(null);
 
   const [sessionForm, setSessionForm] = useState({
@@ -617,7 +618,7 @@ export default function ExamsPage() {
       setSchedules(sc.data.data || []);
       setPapers(pa.data.data || []);
     } catch (e) {
-      toast.error("Lỗi tải dữ liệu hệ thống");
+      toast.error("Lỗi tải dữ liệu hệ thống: " + (e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -633,19 +634,19 @@ export default function ExamsPage() {
       setPaperDetail(res.data);
       setSelectedPaperId(id);
     } catch (e) {
-      toast.error("Lỗi tải chi tiết đề thi");
+      toast.error("Lỗi tải chi tiết đề thi: " + (e as Error).message);
     }
   };
 
   const handleGenerateVersions = async () => {
     if (!paperDetail) return;
     const numStr = prompt(
-      "Nhập số lượng đề hoán vị cần sinh tự động (tối đa 10):",
-      "4",
+      "Nhập số lượng đề hoán vị cần sinh tự động (tối đa 20):",
+      "8",
     );
     if (!numStr) return;
-    const num = parseInt(numStr, 10);
-    if (isNaN(num) || num < 1 || num > 10)
+    const num = parseInt(numStr, 20);
+    if (isNaN(num) || num < 1 || num > 20)
       return toast.error("Số lượng nhập vào không hợp lệ");
     try {
       await examAPI.generateVersions(paperDetail.paper_id, num);
@@ -762,7 +763,7 @@ export default function ExamsPage() {
       setShowSubsectionModal(false);
       loadPaperDetail(paperDetail.paper_id);
     } catch (err) {
-      toast.error("Lỗi lưu phân vùng");
+      toast.error("Lỗi lưu phân vùng: " + (err as Error).message);
     }
   };
 
@@ -924,7 +925,7 @@ export default function ExamsPage() {
       toast.success("Đã tự động chốt lại trật tự toàn bài");
       loadPaperDetail(paperDetail.paper_id);
     } catch (e) {
-      toast.error("Lỗi đồng bộ thứ tự");
+      toast.error("Lỗi đồng bộ thứ tự: " + (e as Error).message);
     }
   };
 
@@ -1019,7 +1020,7 @@ export default function ExamsPage() {
       toast.success("Đã cập nhật lại trật tự câu hỏi trong đoạn");
       loadPaperDetail(paperDetail.paper_id);
     } catch (e) {
-      toast.error("Lỗi đồng bộ thứ tự con");
+      toast.error("Lỗi đồng bộ thứ tự con: " + (e as Error).message);
     }
   };
 
@@ -1130,7 +1131,7 @@ export default function ExamsPage() {
       toast.success("Đã xóa câu hỏi");
       loadPaperDetail(paperDetail!.paper_id);
     } catch (e) {
-      toast.error("Lỗi thao tác xóa");
+      toast.error("Lỗi thao tác xóa: " + (e as Error).message);
     }
   };
 
@@ -1146,7 +1147,7 @@ export default function ExamsPage() {
       toast.success("Đã gỡ bỏ phân vùng");
       loadPaperDetail(paperDetail!.paper_id);
     } catch (e) {
-      toast.error("Lỗi gỡ bỏ phân vùng");
+      toast.error("Lỗi gỡ bỏ phân vùng: " + (e as Error).message);
     }
   };
 
@@ -1164,7 +1165,7 @@ export default function ExamsPage() {
       });
       fetchData();
     } catch (e) {
-      toast.error("Lỗi khởi tạo");
+      toast.error("Lỗi khởi tạo: " + (e as Error).message);
     }
   };
   const createSchedule = async (e: React.FormEvent) => {
@@ -1183,7 +1184,7 @@ export default function ExamsPage() {
       toast.success("Gán lịch thi thành công");
       fetchData();
     } catch (e: any) {
-      toast.error("Lỗi gán lịch");
+      toast.error("Lỗi gán lịch: " + (e as Error).message);
     }
   };
   const createPaper = async (e: React.FormEvent) => {
@@ -1200,7 +1201,7 @@ export default function ExamsPage() {
       fetchData();
       loadPaperDetail(res.data.paper_id);
     } catch (e) {
-      toast.error("Lỗi tạo mã đề");
+      toast.error("Lỗi tạo mã đề: " + (e as Error).message);
     }
   };
   const publishSession = async (id: number) => {
@@ -1209,7 +1210,7 @@ export default function ExamsPage() {
       toast.success("Đã công bố chính thức");
       fetchData();
     } catch (e) {
-      toast.error("Lỗi công bố");
+      toast.error("Lỗi công bố: " + (e as Error).message);
     }
   };
 
@@ -1710,12 +1711,14 @@ export default function ExamsPage() {
                       </button>
                     )}
                     <button
+                      type='button'
                       onClick={() => openImportModal(part.key)}
                       className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"
                     >
-                      <FiUpload size={16} /> Import CSV
+                      <FiUpload size={16} /> Nhập CSV
                     </button>
                     <button
+                      type='button'
                       onClick={() => openAddQuestionModal(part.key)}
                       className="btn-primary px-3 py-2 text-xs flex items-center gap-1.5"
                     >
@@ -1991,11 +1994,26 @@ export default function ExamsPage() {
                 </div>
                 <div className="content-box bg-blue-50/80 border-blue-200 p-4 text-xs text-blue-950 shadow-sm">
                   <p className="font-bold mb-1.5 flex items-center gap-1.5 text-blue-900">
-                    <FiFileText /> Chuẩn Header dòng đầu:
+                    <FiFileText /> Chuẩn Header dòng đầu: <button
+                    type='button'
+                    onClick={() =>
+                      exportAPI.downloadTemplate(
+                        importForm.questionType === 'multiple_choice'
+                          ? 'question_mc'
+                          : importForm.questionType === 'true_false'
+                          ? 'question_tf'
+                          : 'question_sa'
+                      )
+                    }
+                    className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"
+                  >
+                    <FiDownload size={16} /> Tải mẫu CSV
+                  </button>
                   </p>
                   <p className="font-mono bg-white p-2.5 border border-blue-300 rounded-lg overflow-x-auto text-xs font-bold shadow-inner">
                     {getCsvFormatGuide()}
                   </p>
+                  <p>Có thể để cột <strong>DinhHuong</strong> trống. Các giá trị chấp nhận trong cột <strong>DinhHuong</strong>: <code>Chung</code>, <code>ICT</code>, <code>CS</code>.</p>
                 </div>
                 <div className="content-box border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-500 hover:bg-blue-50/20 cursor-pointer relative transition-all shadow-none">
                   <input

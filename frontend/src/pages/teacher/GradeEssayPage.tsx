@@ -33,8 +33,8 @@ export default function GradeEssayPage() {
     try {
       const response = await gradingAPI.getEssays({ status: activeTab });
       setEssays(response.data.data || []);
-    } catch (error: any) {
-      toast.error("Lỗi khi tải danh sách bài thi");
+    } catch (error) {
+      toast.error("Lỗi khi tải danh sách bài thi: " + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export default function GradeEssayPage() {
         feedback: res.data.feedback || "",
       });
     } catch (e) {
-      toast.error("Không thể tải chi tiết bài làm");
+      toast.error("Không thể tải chi tiết bài làm: " + (e as Error).message);
     }
   };
 
@@ -83,7 +83,7 @@ export default function GradeEssayPage() {
       setSelectedEssay(null);
       fetchEssays();
     } catch (error) {
-      toast.error("Lỗi lưu điểm");
+      toast.error("Lỗi lưu điểm: " + (error as Error).message);
     } finally {
       setSaving(false);
     }

@@ -450,6 +450,11 @@ def create_exam_schedule():
         if not subject:
             return jsonify({"error": "Subject not found"}), 404
 
+        if ExamSchedule.query.filter_by(
+            exam_session_id=data["exam_session_id"], subject_id=data["subject_id"]
+        ).first():
+            return jsonify({"error": "Schedule for this subject already exists in the session"}), 400
+
         # Parse and validate dates/times
         exam_date = datetime.strptime(data["exam_date"], "%Y-%m-%d").date()
         start_time = datetime.strptime(data["start_time"], "%H:%M").time()
@@ -477,7 +482,8 @@ def create_exam_schedule():
                 jsonify(
                     {
                         "error": f"Duration must be at least {expected_duration} minutes for {
-                            subject.subject_name}"}),
+                            subject.subject_name}"
+                    }),
                 400,
             )
 

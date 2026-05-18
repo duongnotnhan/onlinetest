@@ -262,8 +262,8 @@ export default function TakeExamPage() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     try {
       await studentAPI.submitAnswer(Number(attemptId), questionId, value);
-    } catch (e) {
-      toast.error("Lỗi lưu tạm");
+    } catch (error) {
+      toast.error("Lỗi lưu tạm: " + (error as Error).message);
     }
   };
 
@@ -273,8 +273,8 @@ export default function TakeExamPage() {
     setAnswers(newAnswers);
     try {
       await studentAPI.submitAnswer(Number(attemptId), questionId, null);
-    } catch (e) {
-      toast.error("Lỗi khi xóa câu trả lời");
+    } catch (error) {
+      toast.error("Lỗi khi xóa câu trả lời: " + (error as Error).message);
     }
   };
 
@@ -291,8 +291,8 @@ export default function TakeExamPage() {
           answers[firstQInTrack.question_id] || null,
           track,
         );
-    } catch (e) {
-      toast.error("Lỗi khi thay đổi track");
+    } catch (error) {
+      toast.error("Lỗi khi thay đổi track: " + (error as Error).message);
     }
   };
 
@@ -344,7 +344,7 @@ export default function TakeExamPage() {
       setResult(res.data);
       toast.success("Nộp bài thành công!");
     } catch (error) {
-      toast.error("Lỗi nộp bài");
+      toast.error("Lỗi nộp bài: " + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }

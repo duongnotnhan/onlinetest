@@ -266,6 +266,13 @@ export const teacherAPI = {
     return axiosInstance.post(`/teacher/students/${studentId}/reset-password`);
   },
 
+  resetBulkPasswords: async (studentIds: number[]) => {
+    handleBlobDownload(await axiosInstance.post('/teacher/students/reset-bulk-passwords', { student_ids: studentIds }, {
+      responseType: 'blob',
+    }), `Mat_Khau_Moi_Hoc_Sinh.xlsx`);
+    
+  },
+
   // Exam Management (for exams created by teacher)
   getExams: async () => {
     return axiosInstance.get("/teacher/exams");
