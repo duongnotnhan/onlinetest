@@ -1,22 +1,22 @@
 """Student routes"""
 
 import io
-import traceback
 import json
 import random
+import traceback
 from datetime import datetime, timedelta
 from functools import wraps
 
-from app import db
-from app.models import (AnswerChoice, ExamAttempt, ExamPaper,
-                        ExamResult, ExamSchedule, ExamSession,
-                        EssayGrade, GeneratedPaper, Question,
-                        QuestionItem, QuestionSection, Student,
-                        StudentResponse, StudentSubjectRegistration,
-                        Subject, User, Teacher)
-from app.services.exam_service import ExamScoringService
 from flask import jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from app import db
+from app.models import (AnswerChoice, EssayGrade, ExamAttempt, ExamPaper,
+                        ExamResult, ExamSchedule, ExamSession, GeneratedPaper,
+                        Question, QuestionItem, QuestionSection, Student,
+                        StudentResponse, StudentSubjectRegistration, Subject,
+                        Teacher, User)
+from app.services.exam_service import ExamScoringService
 
 from . import student_bp
 

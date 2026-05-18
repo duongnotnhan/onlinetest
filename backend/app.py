@@ -1,9 +1,10 @@
 """Main application entry point"""
 import os
 
-from app import create_app, db
 from dotenv import load_dotenv
 from flask_apscheduler import APScheduler
+
+from app import create_app, db  # pylint: disable=import-self
 
 load_dotenv()
 

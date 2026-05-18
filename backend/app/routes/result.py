@@ -2,9 +2,10 @@
 
 from datetime import datetime
 
+from flask import jsonify, request
+
 from app import db
 from app.models import ExamResult, ExamSession, ResultQuery, Student, Subject
-from flask import jsonify, request
 
 from . import result_bp
 

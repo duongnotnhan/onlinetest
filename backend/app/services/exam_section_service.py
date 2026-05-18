@@ -4,8 +4,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 from app import db
-from app.models import (ExamPaper, Question,
-                        QuestionPassage, QuestionSection,
+from app.models import (ExamPaper, Question, QuestionPassage, QuestionSection,
                         QuestionSectionType)
 from app.services.rich_text_service import RichTextService
 

@@ -1,8 +1,8 @@
 """Teacher Service - Business logic for GVQL operations"""
 
+import random
 from datetime import datetime
 
-import random
 from app import db
 from app.models import (ExamSession, MakeupRegistration, Student,
                         StudentSubjectRegistration, Teacher, User)

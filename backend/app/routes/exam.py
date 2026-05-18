@@ -2,10 +2,13 @@
 
 import csv
 import io
-import traceback
 import json
+import traceback
 from datetime import datetime
 from functools import wraps
+
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app import db
 from app.models import (Answer, AnswerChoice, EssayGrade, ExamAttempt,
@@ -14,8 +17,6 @@ from app.models import (Answer, AnswerChoice, EssayGrade, ExamAttempt,
                         QuestionSectionType, Student, StudentResponse, Subject,
                         Teacher, User)
 from app.services.exam_service import ExamPaperService, ExamScoringService
-from flask import jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from . import exam_bp
 

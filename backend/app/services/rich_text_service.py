@@ -2,13 +2,14 @@
 
 import os
 from datetime import datetime
+from html import escape
 from typing import Dict, List, Optional, Tuple
 
-from html import escape
 import bleach  # Để sanitize HTML
+
 from app import db
-from app.models import (MediaUploadLog, QuestionComment,
-                        QuestionMedia, RichTextTemplate)
+from app.models import (MediaUploadLog, QuestionComment, QuestionMedia,
+                        RichTextTemplate)
 
 
 class RichTextService:

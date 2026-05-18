@@ -3,26 +3,15 @@
 from datetime import datetime
 from functools import wraps
 
-from app import db
-from app.models import (
-    District,
-    EssayGrade,
-    ExamAttempt,
-    ExamResult,
-    ExamSchedule,
-    ExamSession,
-    MakeupRegistration,
-    Province,
-    School,
-    Student,
-    StudentResponse,
-    Subject,
-    Teacher,
-    User,
-    Question)
-from app.services.exam_service import ExamScoringService
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from app import db
+from app.models import (District, EssayGrade, ExamAttempt, ExamResult,
+                        ExamSchedule, ExamSession, MakeupRegistration,
+                        Province, Question, School, Student, StudentResponse,
+                        Subject, Teacher, User)
+from app.services.exam_service import ExamScoringService
 
 from . import admin_bp
 

@@ -1,12 +1,12 @@
 """File upload utilities and API endpoints"""
 
+import glob
 import io
 import os
 import uuid
 from datetime import datetime
 from pathlib import Path
 
-import glob
 from flask import current_app, jsonify, request, send_from_directory
 from flask_jwt_extended import jwt_required
 from PIL import Image

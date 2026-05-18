@@ -4,12 +4,12 @@ import traceback
 from datetime import datetime
 from functools import wraps
 
-from app import db
-from app.models import (Answer, EssayGrade, ExamAttempt,
-                        Question, ExamPaper,
-                        StudentResponse, Teacher, User)
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from app import db
+from app.models import (Answer, EssayGrade, ExamAttempt, ExamPaper, Question,
+                        StudentResponse, Teacher, User)
 
 from . import grading_bp
 

@@ -2,17 +2,17 @@
 
 import csv
 import io
+import re
 from datetime import datetime
 from functools import wraps
-import re
 
-from app import db
-from app.models import (ExamResult, ExamSession, EssayGrade,
-                        MakeupRegistration, School,
-                        Student, StudentSubjectRegistration,
-                        Subject, Teacher, User)
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from app import db
+from app.models import (EssayGrade, ExamResult, ExamSession,
+                        MakeupRegistration, School, Student,
+                        StudentSubjectRegistration, Subject, Teacher, User)
 
 from . import teacher_bp
 

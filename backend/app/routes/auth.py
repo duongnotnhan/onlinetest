@@ -1,17 +1,18 @@
 """Authentication routes - THPT QG System"""
+import base64
 import io
 from datetime import datetime
 from functools import wraps
 
-import base64
 import pyotp
 import qrcode
-from app import db
-from app.models import Admin, AuditLog, Student, Teacher, User
-from app.utils.validators import validate_password
 from flask import jsonify, request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 get_jwt_identity, jwt_required)
+
+from app import db
+from app.models import Admin, AuditLog, Student, Teacher, User
+from app.utils.validators import validate_password
 
 from . import auth_bp
 

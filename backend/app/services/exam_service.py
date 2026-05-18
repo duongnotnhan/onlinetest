@@ -5,12 +5,11 @@ import random
 from datetime import datetime, timedelta
 
 from app import db
-from app.models import (Answer, ExamAttempt, ExamSchedule, ExamSession,
-                        ExamPaper, ExamResult, Student,
-                        StudentSubjectRegistration, StudentResponse,
-                        Question, QuestionItem, AnswerChoice,
-                        QuestionSection, GeneratedPaper,
-                        Subject, User)
+from app.models import (Answer, AnswerChoice, ExamAttempt, ExamPaper,
+                        ExamResult, ExamSchedule, ExamSession, GeneratedPaper,
+                        Question, QuestionItem, QuestionSection, Student,
+                        StudentResponse, StudentSubjectRegistration, Subject,
+                        User)
 
 
 class AuthService:
