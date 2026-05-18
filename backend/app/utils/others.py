@@ -7,7 +7,7 @@ def remove_accents(text):
     """
     if not text:
         return text
-        
+
     letters_to_replace = {
         'ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬ': 'A',
         'áàảãạăắằẳẵặâấầẩẫậ': 'a',
@@ -24,9 +24,9 @@ def remove_accents(text):
         'Đ': 'D',
         'đ': 'd'
     }
-    
+
     for chars, base in letters_to_replace.items():
         for char in chars:
             text = text.replace(char, base)
-            
+
     return text

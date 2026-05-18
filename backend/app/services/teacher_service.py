@@ -4,9 +4,9 @@ import random
 from datetime import datetime
 
 from app import db
-from app.utils.others import remove_accents
 from app.models import (ExamSession, MakeupRegistration, Student,
                         StudentSubjectRegistration, Teacher, User)
+from app.utils.others import remove_accents
 
 
 class TeacherService:
@@ -328,8 +328,10 @@ class StudentBulkService:
             success_data = []  # Mảng thu thập dữ liệu phục vụ in file Excel
 
             for student_id in student_ids:
-                status, result = StudentBulkService.reset_student_password(student_id, teacher_user_id, db_commit=False)
-                
+                status, result = StudentBulkService\
+                    .reset_student_password(student_id,\
+                                            teacher_user_id, db_commit=False)
+
                 if status:
                     updated += 1
                     student = Student.query.get(student_id)
@@ -345,14 +347,14 @@ class StudentBulkService:
                     errors.append({"student_id": student_id, "error": result})
 
             db.session.commit()
-            
+
             # Trả về thêm mảng dữ liệu thành công
             return True, {
                 "updated": updated, 
                 "errors": errors, 
                 "success_data": success_data
             }
-            
+
         except Exception as e:
             db.session.rollback()
             return False, str(e)

@@ -453,7 +453,9 @@ def create_exam_schedule():
         if ExamSchedule.query.filter_by(
             exam_session_id=data["exam_session_id"], subject_id=data["subject_id"]
         ).first():
-            return jsonify({"error": "Schedule for this subject already exists in the session"}), 400
+            return jsonify({"error": \
+                            "Schedule for this subject \
+                            already exists in the session"}), 400
 
         # Parse and validate dates/times
         exam_date = datetime.strptime(data["exam_date"], "%Y-%m-%d").date()

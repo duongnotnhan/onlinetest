@@ -2,22 +2,21 @@
 
 import csv
 import io
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from flask import send_file
 import re
 from datetime import datetime
 from functools import wraps
 
-from flask import jsonify, request
+from flask import jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from app import db
-from app.utils.others import remove_accents
-from app.services.teacher_service import StudentBulkService
 from app.models import (EssayGrade, ExamResult, ExamSession,
                         MakeupRegistration, School, Student,
                         StudentSubjectRegistration, Subject, Teacher, User)
+from app.services.teacher_service import StudentBulkService
+from app.utils.others import remove_accents
 
 from . import teacher_bp
 
@@ -805,7 +804,7 @@ def reset_bulk_student_passwords():
             return jsonify({"error": result}), 400
 
         success_data = result.get("success_data", [])
-        
+
         # Nếu không có học sinh nào cập nhật thành công, báo lỗi luôn không sinh file trống
         if not success_data:
             return jsonify({
@@ -823,7 +822,8 @@ def reset_bulk_student_passwords():
 
         # Định dạng Style bảng biểu thanh lịch, tối giản
         font_header = Font(name='Arial', size=11, bold=True, color='FFFFFF')
-        fill_header = PatternFill(start_color='1E3A8A', end_color='1E3A8A', fill_type='solid') # Xanh Navy chuyên nghiệp
+        fill_header = PatternFill(start_color='1E3A8A', \
+                                  end_color='1E3A8A', fill_type='solid')
         font_body = Font(name='Arial', size=11)
         thin_border = Border(
             left=Side(style='thin', color='E2E8F0'), right=Side(style='thin', color='E2E8F0'),
@@ -844,7 +844,7 @@ def reset_bulk_student_passwords():
         # Đổ dữ liệu tài khoản và mật khẩu vào các dòng kế tiếp
         for idx, student_info in enumerate(success_data, start=1):
             dob_str = str(student_info['date_of_birth']) if student_info['date_of_birth'] else ''
-            
+
             ws.append([
                 idx,
                 student_info['full_name'].upper() if student_info['full_name'] else '',
@@ -853,13 +853,13 @@ def reset_bulk_student_passwords():
                 student_info['class_name'].upper() if student_info['class_name'] else '',
                 student_info['temp_password']
             ])
-            
+
             curr_row = ws.max_row
             for col_idx in range(1, len(headers) + 1):
                 cell = ws.cell(row=curr_row, column=col_idx)
                 cell.font = font_body
                 cell.border = thin_border
-                
+
                 # Căn lề giữa cho các cột định danh ngắn, căn lề trái cho họ tên
                 if col_idx in [1, 3, 4, 5]:
                     cell.alignment = Alignment(horizontal='center', vertical='center')
