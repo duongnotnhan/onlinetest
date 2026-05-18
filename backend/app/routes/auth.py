@@ -1,16 +1,15 @@
 """Authentication routes - THPT QG System"""
-
 import io
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 
+import base64
 import pyotp
 import qrcode
 from app import db
 from app.models import Admin, AuditLog, Student, Teacher, User
 from app.utils.validators import validate_password
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 get_jwt_identity, jwt_required)
 
@@ -87,7 +86,7 @@ def register():
             full_name=data.get("full_name"),
             role=data["role"],
             is_first_login=True,
-            is_active=False if data["role"] == "teacher" else True,
+            is_active=(data["role"] != "teacher"),
         )
         user.set_password(data["password"])
 
@@ -103,8 +102,6 @@ def register():
             )
             db.session.add(teacher)
         elif data["role"] == "admin":
-            from app.models import Admin
-
             admin = Admin(user_id=user.user_id)
             db.session.add(admin)
 
@@ -345,8 +342,6 @@ def setup_2fa():
         img_io = io.BytesIO()
         qr.make_image().save(img_io, format="PNG")
         img_io.seek(0)
-
-        import base64
 
         qr_str = base64.b64encode(img_io.getvalue()).decode()
 

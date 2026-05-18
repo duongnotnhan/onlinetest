@@ -4,8 +4,7 @@ from datetime import datetime
 
 from app import db
 from app.models import (ExamAttempt, ExamResult, ExamSchedule, ExamSession,
-                        MakeupRegistration, StudentResponse, Subject, Teacher,
-                        User)
+                        MakeupRegistration, Teacher, User)
 
 
 class AdminService:

@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+"""Main application entry point"""
 import os
 
 from app import create_app, db
 from dotenv import load_dotenv
-from flask import Flask
 from flask_apscheduler import APScheduler
 
 load_dotenv()
@@ -19,6 +18,7 @@ scheduler.init_app(app)
 
 @scheduler.task('interval', id='auto_submit_overdue_job', minutes=1)
 def run_auto_submit():
+    """Auto submit overdue exams every minute"""
     with app.app_context():
         try:
             from app.services.exam_service import ExamScoringService

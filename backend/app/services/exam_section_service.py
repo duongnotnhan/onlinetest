@@ -1,13 +1,12 @@
 """Exam Section Service - Quản lý Section, Passage, và Question trong Section"""
 
-import json
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 from app import db
-from app.models import (ExamPaper, Question, QuestionEditHistory,
-                        QuestionPassage, QuestionSection, QuestionSectionType,
-                        User)
+from app.models import (ExamPaper, Question,
+                        QuestionPassage, QuestionSection,
+                        QuestionSectionType)
 from app.services.rich_text_service import RichTextService
 
 
@@ -145,6 +144,9 @@ class ExamSectionService:
 
             if section_description:
                 section.section_description = section_description
+
+            if updated_by:
+                section.updated_by = updated_by
 
             section.updated_at = datetime.utcnow()
 
@@ -482,65 +484,3 @@ class ExamSectionService:
         except Exception as e:
             db.session.rollback()
             return False, f"Lỗi sắp xếp lại thứ tự: {str(e)}"
-
-    @staticmethod
-    def duplicate_section(
-        section_id: int, new_paper_id: int, created_by: int
-    ) -> Tuple[bool, str, Optional[QuestionSection]]:
-        """
-        Duplicate (sao chép) section sang paper khác
-
-        Args:
-            section_id: ID của section nguồn
-            new_paper_id: ID của paper đích
-            created_by: User ID tạo section mới
-
-        Returns:
-            Tuple (success: bool, message: str, new_section: QuestionSection or None)
-        """
-        try:
-            source_section = QuestionSection.query.get(section_id)
-            if not source_section:
-                return False, "Section nguồn không tồn tại", None
-
-            # Tạo section mới
-            success, msg, new_section = ExamSectionService.create_section(
-                paper_id=new_paper_id,
-                section_type_key=(
-                    source_section.section_type.section_type_key
-                    if source_section.section_type
-                    else None
-                ),
-                section_name=source_section.section_name,
-                section_description=source_section.section_description,
-                created_by=created_by,
-            )
-
-            if not success:
-                return False, msg, None
-
-            # Copy passages
-            passages = ExamSectionService.get_passages_by_section(section_id)
-            for passage in passages:
-                ExamSectionService.add_passage(
-                    section_id=new_section.section_id,
-                    passage_text=passage.passage_text,
-                    passage_title=passage.passage_title,
-                    author_name=passage.author_name,
-                    source_info=passage.source_info,
-                    created_by=created_by,
-                    sanitize=False,  # Đã sanitize rồi
-                )
-
-            # Copy questions (nhưng không copy answers)
-            questions = ExamSectionService.get_questions_in_section(section_id)
-            for question in questions:
-                # Tạo câu hỏi mới trong đề thi mới
-                # (Logic tạo câu hỏi ở ExamPaperService)
-                pass
-
-            return True, "Duplicate section thành công", new_section
-
-        except Exception as e:
-            db.session.rollback()
-            return False, f"Lỗi duplicate section: {str(e)}", None

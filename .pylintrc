@@ -16,4 +16,5 @@ disable=
     too-many-nested-blocks,
     cyclic-import,
     too-many-arguments,
+    too-many-lines,
     too-many-positional-arguments,

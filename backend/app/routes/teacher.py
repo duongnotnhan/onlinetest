@@ -4,12 +4,13 @@ import csv
 import io
 from datetime import datetime
 from functools import wraps
+import re
 
 from app import db
-from app.models import (District, ExamResult, ExamSession, MakeupRegistration,
-                        Province, School, Student, StudentSubjectRegistration,
+from app.models import (ExamResult, ExamSession, EssayGrade,
+                        MakeupRegistration, School,
+                        Student, StudentSubjectRegistration,
                         Subject, Teacher, User)
-from app.utils.validators import validate_cccd, validate_password
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -18,8 +19,6 @@ from . import teacher_bp
 
 def validate_date(date_str, pattern=r"^\d{4}-\d{2}-\d{2}$"):
     """Validate date string with regex pattern (default YYYY-MM-DD)"""
-    import re
-
     if not re.match(pattern, date_str):
         return False
     try:
@@ -61,9 +60,8 @@ def get_school_id_for_user(user):
         # Admin tạm thời lấy trường đầu tiên để quản lý
         school = School.query.first()
         return school.school_id if school else None
-    else:
-        teacher = Teacher.query.filter_by(user_id=user.user_id).first()
-        return teacher.school_id if teacher else None
+    teacher = Teacher.query.filter_by(user_id=user.user_id).first()
+    return teacher.school_id if teacher else None
 
 
 @teacher_bp.route("/school-id/<int:teacher_id>", methods=["GET"])
@@ -199,8 +197,6 @@ def get_dashboard():
 
         # DÀNH CHO GIÁO VIÊN CHẤM THI NGỮ VĂN
         if teacher.subject_specialty == "NGU_VAN_GRADER":
-            from app.models import EssayGrade
-
             total_assigned = EssayGrade.query.filter_by(
                 grader_id=user_id).count()
             graded = EssayGrade.query.filter_by(
@@ -221,38 +217,37 @@ def get_dashboard():
             )
 
         # DÀNH CHO GIÁO VIÊN QUẢN LÝ TRƯỜNG (GVQL)
-        else:
-            school_id = teacher.school_id
-            student_ids = [
-                s.student_id for s in Student.query.filter_by(
-                    school_id=school_id).all()]
-            pending_makeups = (
-                MakeupRegistration.query.filter(
-                    MakeupRegistration.student_id.in_(student_ids),
-                    MakeupRegistration.approval_status == "pending",
-                ).count()
-                if student_ids
-                else 0
-            )
-
-            # Sửa "Đề thi của tôi" thành "Kỳ thi đang diễn ra"
-            active_sessions = ExamSession.query.filter_by(
-                is_published=True, is_locked=False
+        school_id = teacher.school_id
+        student_ids = [
+            s.student_id for s in Student.query.filter_by(
+                school_id=school_id).all()]
+        pending_makeups = (
+            MakeupRegistration.query.filter(
+                MakeupRegistration.student_id.in_(student_ids),
+                MakeupRegistration.approval_status == "pending",
             ).count()
+            if student_ids
+            else 0
+        )
 
-            return (
-                jsonify(
-                    {
-                        "role_type": "gvql",
-                        "stats": {
-                            "total_students": len(student_ids),
-                            "pending_makeups": pending_makeups,
-                            "active_sessions": active_sessions,
-                        },
-                    }
-                ),
-                200,
-            )
+        # Sửa "Đề thi của tôi" thành "Kỳ thi đang diễn ra"
+        active_sessions = ExamSession.query.filter_by(
+            is_published=True, is_locked=False
+        ).count()
+
+        return (
+            jsonify(
+                {
+                    "role_type": "gvql",
+                    "stats": {
+                        "total_students": len(student_ids),
+                        "pending_makeups": pending_makeups,
+                        "active_sessions": active_sessions,
+                    },
+                }
+            ),
+            200,
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -484,10 +479,6 @@ def delete_student(student_id):
 @teacher_required
 def import_students():
     """Import students from CSV and register subjects automatically"""
-    import csv
-    import io
-    from datetime import datetime
-
     try:
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
@@ -555,7 +546,8 @@ def import_students():
                     if not row.get(field):
                         raise ValueError(f"Missing {field}")
 
-                # Tạm thời hủy xác minh CCCD vì vẫn có trường hợp sử dụng mã định danh có định dạng khác
+                # Tạm thời hủy xác minh CCCD vì vẫn có trường hợp
+                # sử dụng mã định danh có định dạng khác
                 # if not validate_cccd(row['cccd']):
                 #     raise ValueError('Số CCCD không hợp lệ.')
 
@@ -585,7 +577,9 @@ def import_students():
                     raise ValueError("Môn tự chọn 1 không được để trống.")
                 if row.get("tuchon1") and not row.get("tuchon2"):
                     raise ValueError(
-                        "Môn tự chọn 2 không được để trống. Nếu thí sinh chỉ đăng ký 1 môn tự chọn, hãy để môn tự chọn 2 là MT."
+                        "Môn tự chọn 2 không được để trống. " \
+                        "Nếu thí sinh chỉ đăng ký 1 môn tự chọn, " \
+                        "hãy để môn tự chọn 2 là MT."
                     )
 
                 if row.get("tuchon1") and row["tuchon1"].upper() not in [
@@ -635,7 +629,9 @@ def import_students():
                     and row["tuchon2"] != "MT"
                 ):
                     raise ValueError(
-                        "Nếu môn tự chọn 1 là MT thì môn tự chọn 2 phải là MT. Hoặc nếu thí sinh chỉ đăng ký 1 môn tự chọn, phải để tuchon1 là mã môn tự chọn và tuchon2 là MT."
+                        "Nếu môn tự chọn 1 là MT thì môn tự chọn 2 phải là MT. " \
+                        "Hoặc nếu thí sinh chỉ đăng ký 1 môn tự chọn, " \
+                        "phải để tuchon1 là mã môn tự chọn và tuchon2 là MT."
                     )
 
                 if row.get("date_of_birth") and not validate_date(
@@ -721,7 +717,8 @@ def import_students():
                 errors.append(
                     {
                         "row": row_num,
-                        "error": "Gặp lỗi khi xử lý dòng này. Xem chi tiết lỗi bên cạnh hoặc liên hệ Quản trị viên nếu bạn nghĩ đây là lỗi hệ thống.",
+                        "error": "Gặp lỗi khi xử lý dòng này. Xem chi tiết lỗi bên cạnh \
+                                 hoặc liên hệ Quản trị viên nếu bạn nghĩ đây là lỗi hệ thống.",
                         "details": str(e),
                     })
 

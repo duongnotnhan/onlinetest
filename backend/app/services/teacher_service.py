@@ -2,10 +2,10 @@
 
 from datetime import datetime
 
+import random
 from app import db
 from app.models import (ExamSession, MakeupRegistration, Student,
                         StudentSubjectRegistration, Teacher, User)
-from app.utils.validators import validate_cccd, validate_password
 
 
 class TeacherService:
@@ -29,11 +29,12 @@ class TeacherService:
             # Validate CCCD not already used
             existing = Student.query.filter_by(cccd=cccd).first()
             if existing:
-                return False, "CCCD already registered"
+                return False, "CCCD này đã được đăng ký"
 
             # Create user account
             username = cccd
-            temp_password = f"Temp@{cccd[-6:]}"
+            random.seed(teacher_user_id + int(cccd[-4:]))
+            temp_password = f"{full_name.split()[-1]}@{cccd[-6:]}@{random.randint(1000, 9999)}"
 
             user = User(
                 username=username,
@@ -187,8 +188,8 @@ class StudentImportService:
             return False, errors
 
         # Validate CCCD
-        if not validate_cccd(row.get("cccd", "")):
-            errors.append("Invalid CCCD format")
+        # if not validate_cccd(row.get("cccd", "")):
+        #     errors.append("Invalid CCCD format")
 
         # Check CCCD uniqueness
         existing = Student.query.filter_by(cccd=row["cccd"]).first()

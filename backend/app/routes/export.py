@@ -5,7 +5,7 @@ import io
 
 from app import db
 from app.models import ExamAttempt, ExamSession, School, Student, Subject, User
-from flask import Blueprint, jsonify, request, send_file
+from flask import jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -346,7 +346,8 @@ def export_system_data(entity_type, export_type):
                                   subj.subject_name if subj else f"Mã: {att.subject_id}",
                                   float(att.total_score) if att.total_score is not None else 0.0,
                                   ("Đã hoàn thành" if att.status in ["graded",
-                                                                     "completed"] else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
+                                                                     "completed"] 
+                                                    else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
                                   ])
 
         # -----------------------------------------------
@@ -367,7 +368,7 @@ def export_system_data(entity_type, export_type):
                 "Kỳ Thi",
                 "Trạng Thái",
             ]
-            filename = f"Ket_Qua_Thi_Cua_Truong"
+            filename = "Ket_Qua_Thi_Cua_Truong"
 
             query = (
                 db.session.query(
@@ -419,7 +420,8 @@ def export_system_data(entity_type, export_type):
                                   float(att.total_score) if att.total_score is not None else 0.0,
                                   sess.session_name if sess else "",
                                   ("Đã hoàn thành" if att.status in ["graded",
-                                                                     "completed"] else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
+                                                                     "completed"] 
+                                                    else "Chưa nộp bài hoặc bài nộp không hợp lệ"),
                                   ])
 
         else:
@@ -445,7 +447,7 @@ def export_system_data(entity_type, export_type):
                 download_name=f"{filename}.csv",
             )
 
-        elif export_type == "xlsx":
+        if export_type == "xlsx":
             wb = Workbook()
             ws = wb.active
             ws.title = "Dữ Liệu Hệ Thống"
@@ -505,8 +507,8 @@ def export_system_data(entity_type, export_type):
                 as_attachment=True,
                 download_name=f"{filename}.xlsx",
             )
-        else:
-            return jsonify({"error": "Định dạng file không được hỗ trợ"}), 400
+
+        return jsonify({"error": "Định dạng file không được hỗ trợ"}), 400
 
     except Exception as e:
         db.session.rollback()

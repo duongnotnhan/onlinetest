@@ -1,12 +1,13 @@
 """Grading routes - Essay grading and scoring"""
 
+import traceback
 from datetime import datetime
 from functools import wraps
 
 from app import db
-from app.models import (Answer, EssayGrade, ExamAttempt, ExamResult,
-                        ExamSchedule, ExamSession, Question, StudentResponse,
-                        Subject, Teacher, User)
+from app.models import (Answer, EssayGrade, ExamAttempt,
+                        Question, ExamPaper,
+                        StudentResponse, Teacher, User)
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -152,8 +153,6 @@ def get_essay_details(essay_grade_id):
             response.question_id) if response else None
 
         # TÍNH NĂNG MỚI: Lấy đáp án/hướng dẫn chấm từ database
-        from app.models import Answer
-
         answer_record = (
             Answer.query.filter_by(question_id=question.question_id).first()
             if question
@@ -164,8 +163,6 @@ def get_essay_details(essay_grade_id):
         # Lấy Ngữ liệu nếu có (Hỗ trợ giáo viên xem đoạn văn)
         reading_material = None
         if question and question.paper_id:
-            from app.models import ExamPaper
-
             paper = ExamPaper.query.get(question.paper_id)
             if paper:
                 reading_material = paper.reading_material
@@ -207,8 +204,6 @@ def get_essay_details(essay_grade_id):
         )
 
     except Exception as e:
-        import traceback
-
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
@@ -238,7 +233,7 @@ def submit_essay_grade(essay_grade_id):
         question = Question.query.get(response.question_id)
         max_score = float(question.points) if question else 10.0
 
-        if not (0 <= data["score"] <= max_score):
+        if (0 <= data["score"] <= max_score) is False:
             return jsonify(
                 {"error": f"Score must be between 0 and {max_score}"}), 400
 

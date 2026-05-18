@@ -1,15 +1,14 @@
 """Rich Text và Media Management Service"""
 
-import json
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
+from html import escape
 import bleach  # Để sanitize HTML
 from app import db
-from app.models import (MediaUploadLog, Question, QuestionComment,
-                        QuestionMedia, QuestionPassage, QuestionSection,
-                        RichTextTemplate)
+from app.models import (MediaUploadLog, QuestionComment,
+                        QuestionMedia, RichTextTemplate)
 
 
 class RichTextService:
@@ -101,8 +100,6 @@ class RichTextService:
             return ""
 
         # Escape HTML special characters trước
-        from html import escape
-
         escaped = escape(plain_text)
 
         # Chuyển newline thành <br>
@@ -156,7 +153,7 @@ class RichTextService:
 
         except Exception as e:
             db.session.rollback()
-            raise Exception(f"Error creating template: {str(e)}")
+            raise Exception(f'Error adding comment: {str(e)}') from e
 
     @staticmethod
     def get_templates_by_category(category: str) -> List[RichTextTemplate]:
@@ -409,7 +406,7 @@ class QuestionCommentService:
 
         except Exception as e:
             db.session.rollback()
-            raise Exception(f"Error adding comment: {str(e)}")
+            raise Exception(f'Error adding comment: {str(e)}') from e
 
     @staticmethod
     def get_comments(question_id: int) -> List[QuestionComment]:
@@ -444,7 +441,8 @@ class QuestionCommentService:
 # ============================================================
 DEFAULT_RICH_TEXT_TEMPLATES = [{"template_name": "Tiêu đề Chính",
                                 "template_code": "title_main",
-                                "html_content": '<h1 style="text-align: center; color: #000; font-weight: bold;">{title}</h1>',
+                                "html_content": '<h1 style="text-align: center; \
+                                    color: #000; font-weight: bold;">{title}</h1>',
                                 "category": "headings",
                                 "preview_text": "Tiêu đề lớn căn giữa",
                                 },
@@ -456,37 +454,50 @@ DEFAULT_RICH_TEXT_TEMPLATES = [{"template_name": "Tiêu đề Chính",
                                 },
                                {"template_name": "Đoạn Văn Thường",
                                 "template_code": "paragraph_normal",
-                                "html_content": '<p style="line-height: 1.6; text-align: justify;">{content}</p>',
+                                "html_content": '<p style="line-height: 1.6; \
+                                    text-align: justify;">{content}</p>',
                                 "category": "paragraphs",
                                 "preview_text": "Đoạn văn căn hai lề",
                                 },
                                {"template_name": "Văn Bản Nhấn Mạnh",
                                 "template_code": "text_highlight",
-                                "html_content": '<p><strong><mark style="background-color: yellow;">{text}</mark></strong></p>',
+                                "html_content": '<p><strong><mark style="background-color: \
+                                    yellow;">{text}</mark></strong></p>',
                                 "category": "text_formatting",
                                 "preview_text": "Text in đậm và highlight màu vàng",
                                 },
                                {"template_name": "Danh Sách Đạn",
                                 "template_code": "list_bullet",
-                                "html_content": "<ul><li>{item1}</li><li>{item2}</li><li>{item3}</li></ul>",
+                                "html_content": "<ul><li>{item1}</li><li>{item2}</li>\
+                                    <li>{item3}</li></ul>",
                                 "category": "lists",
                                 "preview_text": "Danh sách có dấu chấm",
                                 },
                                {"template_name": "Danh Sách Số",
                                 "template_code": "list_numbered",
-                                "html_content": "<ol><li>{item1}</li><li>{item2}</li><li>{item3}</li></ol>",
+                                "html_content": "<ol><li>{item1}</li><li>{item2}</li>\
+                                    <li>{item3}</li></ol>",
                                 "category": "lists",
                                 "preview_text": "Danh sách đánh số",
                                 },
                                {"template_name": "Trích Dẫn",
                                 "template_code": "blockquote",
-                                "html_content": '<blockquote style="border-left: 4px solid #ccc; padding-left: 15px; margin: 15px 0; font-style: italic; color: #666;">{quote}</blockquote>',
+                                "html_content": '<blockquote style="border-left: 4px solid #ccc; \
+                                padding-left: 15px; margin: 15px 0; font-style: italic; color: \
+                                    #666;">{quote}</blockquote>',
                                 "category": "text_formatting",
                                 "preview_text": "Đoạn trích dẫn",
                                 },
                                {"template_name": "Bảng Đơn Giản",
                                 "template_code": "table_simple",
-                                "html_content": '<table style="border-collapse: collapse; width: 100%;"><thead><tr style="background-color: #f0f0f0;"><th style="border: 1px solid #ccc; padding: 10px;">{header1}</th><th style="border: 1px solid #ccc; padding: 10px;">{header2}</th></tr></thead><tbody><tr><td style="border: 1px solid #ccc; padding: 10px;">{cell1}</td><td style="border: 1px solid #ccc; padding: 10px;">{cell2}</td></tr></tbody></table>',
+                                "html_content": '<table style="border-collapse: collapse; \
+                                    width: 100%;">\
+                                    <thead><tr style="background-color: #f0f0f0;"><th style="border: \
+                                    1px solid #ccc; padding: 10px;">{header1}</th><th style="border: \
+                                    1px solid #ccc; padding: 10px;">{header2}</th></tr></thead><tbody>\
+                                    <tr><td style="border: 1px solid #ccc; padding: 10px;">{cell1}</td>\
+                                    <td style="border: 1px solid #ccc; padding: 10px;">{cell2}</td></tr>\
+                                    </tbody></table>',
                                 "category": "tables",
                                 "preview_text": "Bảng cơ bản",
                                 },

@@ -1,16 +1,27 @@
 """Admin routes - QTV (Quản Trị Viên)"""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 
 from app import db
-from app.models import (Admin, District, ExamAttempt, ExamResult, ExamSchedule,
-                        ExamSession, MakeupRegistration, Province, School,
-                        Student, StudentResponse, StudentSubjectRegistration,
-                        Subject, Teacher, User)
+from app.models import (
+    District,
+    EssayGrade,
+    ExamAttempt,
+    ExamResult,
+    ExamSchedule,
+    ExamSession,
+    MakeupRegistration,
+    Province,
+    School,
+    Student,
+    StudentResponse,
+    Subject,
+    Teacher,
+    User,
+    Question)
 from app.services.exam_service import ExamScoringService
-from app.utils.validators import validate_date_format
-from flask import Blueprint, jsonify, request
+from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from . import admin_bp
@@ -456,7 +467,7 @@ def create_exam_schedule():
         end_time = datetime.strptime(data["end_time"], "%H:%M").time()
 
         # Validate dates are within session range
-        if not (session.start_date <= exam_date <= session.end_date):
+        if (session.start_date <= exam_date <= session.end_date) is False:
             return (
                 jsonify({"error": "Exam date must be within session date range"}),
                 400,
@@ -468,10 +479,8 @@ def create_exam_schedule():
                 {"error": "start_time must be before end_time"}), 400
 
         # Calculate duration
-        from datetime import datetime as dt_class
-
-        dt_start = dt_class.combine(exam_date, start_time)
-        dt_end = dt_class.combine(exam_date, end_time)
+        dt_start = datetime.combine(exam_date, start_time)
+        dt_end = datetime.combine(exam_date, end_time)
         duration_minutes = int((dt_end - dt_start).total_seconds() / 60)
         expected_duration = subject.duration_minutes
         if expected_duration and duration_minutes < expected_duration:
@@ -1219,8 +1228,6 @@ def _school_display_name(school):
 @admin_required
 def get_essay_assignments():
     """Lấy danh sách các bài tự luận và người chấm"""
-    from app.models import (EssayGrade, ExamAttempt, Question, Student,
-                            StudentResponse, Subject, User)
 
     session_id = request.args.get("exam_session_id", type=int)
 
@@ -1285,7 +1292,6 @@ def get_essay_assignments():
 @admin_required
 def get_eligible_graders():
     """Lấy danh sách các giáo viên đủ điều kiện chấm tự luận"""
-    from app.models import School, Teacher, User
 
     teachers = Teacher.query.filter_by(
         approval_status="approved", subject_specialty="NGU_VAN_GRADER"
@@ -1311,7 +1317,6 @@ def get_eligible_graders():
 @admin_required
 def assign_grader():
     """Phân công giáo viên chấm thi"""
-    from app.models import EssayGrade
 
     data = request.get_json()
     response_id = data.get("response_id")
@@ -1350,8 +1355,7 @@ def assign_grader():
 @jwt_required()
 @admin_required
 def remove_grader_assignment(grade_id):
-    """Xóa phân công chấm thi"""
-    from app.models import EssayGrade
+    """Xóa phân công chấm thi"""\
 
     grade = EssayGrade.query.get(grade_id)
     if not grade:
@@ -1370,6 +1374,7 @@ def remove_grader_assignment(grade_id):
 @jwt_required()
 @admin_required
 def force_submit_overdue():
+    """Quét và tự động thu bài thi quá hạn"""
     success, result = ExamScoringService.auto_submit_overdue_exams()
     if success:
         return (

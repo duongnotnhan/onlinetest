@@ -1,6 +1,7 @@
 """Validators"""
 
 import re
+from datetime import datetime
 
 
 def validate_password(password):
@@ -31,7 +32,6 @@ def validate_email(email):
 
 def validate_cccd(cccd):
     """Validate Vietnamese CCCD (ID number)"""
-    # CCCD should be 12 digits
     return re.match(r"^\d{12}$", cccd) is not None
 
 
@@ -40,12 +40,10 @@ def validate_phone(phone):
     return re.match(r"^(\+84|0)[1-9]\d{8}$", phone) is not None
 
 
-def validate_date_format(date_str, format="%Y-%m-%d"):
+def validate_date_format(date_str, date_fmt="%Y-%m-%d"):
     """Validate date format"""
-    from datetime import datetime
-
     try:
-        datetime.strptime(date_str, format)
+        datetime.strptime(date_str, date_fmt)
         return True
     except ValueError:
         return False

@@ -1,11 +1,16 @@
 """Authentication and Exam services"""
 
+import json
+import random
 from datetime import datetime, timedelta
 
 from app import db
-from app.models import (ExamSession, Student, StudentSubjectRegistration,
-                        Teacher, User)
-from flask import current_app
+from app.models import (Answer, ExamAttempt, ExamSchedule, ExamSession,
+                        ExamPaper, ExamResult, Student,
+                        StudentSubjectRegistration, StudentResponse,
+                        Question, QuestionItem, AnswerChoice,
+                        QuestionSection, GeneratedPaper,
+                        Subject, User)
 
 
 class AuthService:
@@ -80,8 +85,6 @@ class StudentService:
     @staticmethod
     def get_student_exam_schedule(student_id, exam_session_id):
         """Get student exam schedule"""
-        from app.models import ExamSchedule
-
         student = Student.query.get(student_id)
         if not student:
             return None
@@ -175,8 +178,6 @@ class ExamService:
         exam_session_id, subject_id, exam_date, start_time, end_time
     ):
         """Create exam schedule"""
-        from app.models import ExamSchedule
-
         schedule = ExamSchedule(
             exam_session_id=exam_session_id,
             subject_id=subject_id,
@@ -195,8 +196,6 @@ class ResultService:
     @staticmethod
     def calculate_score(exam_attempt_id):
         """Calculate exam score"""
-        from app.models import Answer, ExamAttempt, StudentResponse
-
         attempt = ExamAttempt.query.get(exam_attempt_id)
         if not attempt:
             return None
@@ -226,8 +225,6 @@ class ResultService:
     @staticmethod
     def publish_results(exam_session_id):
         """Publish exam results"""
-        from app.models import ExamAttempt, ExamResult
-
         attempts = ExamAttempt.query.filter_by(
             exam_session_id=exam_session_id, status="graded"
         ).all()
@@ -370,8 +367,6 @@ class ExamPaperService:
     @staticmethod
     def create_exam_paper(subject_id, exam_session_id, paper_code, created_by):
         """Create exam paper for subject"""
-        from app.models import ExamPaper, Subject
-
         try:
             subject = Subject.query.get(subject_id)
             if not subject:
@@ -442,9 +437,6 @@ class ExamPaperService:
         subsection_id=None,
     ):
         """Add question to paper"""
-        from app.models import (Answer, AnswerChoice, ExamPaper, Question,
-                                QuestionItem)
-
         try:
             paper = ExamPaper.query.get(paper_id)
             if not paper:
@@ -535,8 +527,6 @@ class ExamPaperService:
             choice_text,
             display_order):
         """Add answer choice to question"""
-        from app.models import AnswerChoice, Question
-
         try:
             question = Question.query.get(question_id)
             if not question:
@@ -564,8 +554,6 @@ class ExamPaperService:
     @staticmethod
     def set_answer_key(question_id, correct_answer, created_by):
         """Set answer key for question"""
-        from app.models import Answer, Question
-
         try:
             question = Question.query.get(question_id)
             if not question:
@@ -594,12 +582,6 @@ class ExamPaperService:
     @staticmethod
     def generate_paper_versions(paper_id, num_versions=3):
         """Generate randomized paper versions"""
-        import json
-        import random
-
-        from app.models import (ExamPaper, GeneratedPaper, Question,
-                                QuestionSection)
-
         try:
             paper = ExamPaper.query.get(paper_id)
             if not paper:
@@ -732,7 +714,7 @@ class ExamPaperService:
                             }
 
                     block_ids = list(blocks.keys())
-                    block_ids.sort(key=lambda x: block_meta[x]["min_q"])
+                    block_ids.sort(key=lambda x, bm=block_meta: bm[x]["min_q"])
 
                     if paper.randomization_enabled:
                         movable_bids = [
@@ -807,8 +789,6 @@ class ExamPaperService:
     @staticmethod
     def finalize_paper(paper_id):
         """Finalize paper"""
-        from app.models import Answer, ExamPaper, GeneratedPaper, Question
-
         try:
             paper = ExamPaper.query.get(paper_id)
             if not paper:
@@ -854,12 +834,7 @@ class ExamPaperService:
 
     @staticmethod
     def get_paper_details(paper_id):
-        import json
-
-        from app.models import (Answer, AnswerChoice, ExamPaper,
-                                GeneratedPaper, Question, QuestionItem,
-                                QuestionSection, Subject)
-
+        """Get paper details with questions and answer keys"""
         try:
             paper = ExamPaper.query.get(paper_id)
             if not paper:
@@ -968,7 +943,7 @@ class ExamPaperService:
                 "subsections": subsections_data,
                 "questions": questions_data,
             }
-        except Exception as e:
+        except Exception:
             return None
 
 
@@ -978,8 +953,6 @@ class ExamScoringService:
     @staticmethod
     def auto_score_multiple_choice(attempt_id):
         """Auto-score multiple choice questions"""
-        from app.models import ExamAttempt, Question, StudentResponse
-
         try:
             attempt = ExamAttempt.query.get(attempt_id)
             if not attempt:
@@ -1025,11 +998,6 @@ class ExamScoringService:
 
     @staticmethod
     def auto_submit_overdue_exams():
-        from datetime import datetime, timedelta
-
-        from app import db
-        from app.models import ExamAttempt
-
         try:
             now = datetime.utcnow()
             ongoing_attempts = ExamAttempt.query.filter_by(
@@ -1105,7 +1073,6 @@ def _normalize_question_part(part):
         "reading": "reading",
         "writing": "writing",
         "essay": "writing",
-        # Tích hợp nhận diện bản đồ định danh môn Tiếng Anh:
         "rc1": "rc1",
         "rc2": "rc2",
         "rf1": "rf1",
@@ -1156,12 +1123,6 @@ def _should_skip_for_informatics(attempt, question):
 
 
 def _score_response(attempt, question, response):
-    import json
-    import random
-
-    from app.models import (Answer, AnswerChoice, GeneratedPaper,
-                            QuestionSection)
-
     if (
         response.response_value is None
         or str(response.response_value).strip().lower() == "null"
@@ -1250,8 +1211,6 @@ def _score_response(attempt, question, response):
 
 
 def _score_true_false(question, response_value):
-    import json
-
     try:
         answers = (
             response_value

@@ -6,8 +6,9 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from flask import current_app, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+import glob
+from flask import current_app, jsonify, request, send_from_directory
+from flask_jwt_extended import jwt_required
 from PIL import Image
 from werkzeug.utils import secure_filename
 
@@ -56,8 +57,6 @@ def compress_image(image_data, max_size=PREVIEW_SIZE):
 def upload_image():
     """Upload image file"""
     try:
-        user_id = get_jwt_identity()
-
         # Check if file is in request
         if "file" not in request.files:
             return jsonify({"error": "No file provided"}), 400
@@ -75,7 +74,8 @@ def upload_image():
                 jsonify(
                     {
                         "error": f'File type not allowed. Allowed: {
-                            ", ".join(ALLOWED_IMAGE_EXTENSIONS)}'}),
+                            ", ".join(ALLOWED_IMAGE_EXTENSIONS)}'
+                    }),
                 400,
             )
 
@@ -141,15 +141,13 @@ def upload_image():
 def serve_image(filepath):
     """Serve uploaded image"""
     try:
-        from flask import send_from_directory
-
         upload_folder = get_upload_folder()
         return send_from_directory(
             os.path.join(
                 upload_folder,
                 "images"),
             filepath)
-    except Exception as e:
+    except Exception:
         return jsonify({"error": "Image not found"}), 404
 
 
@@ -158,12 +156,9 @@ def serve_image(filepath):
 def delete_image(filename):
     """Delete uploaded image"""
     try:
-        user_id = get_jwt_identity()
         upload_folder = get_upload_folder()
 
         # Find and delete file (search in recent dates)
-        import glob
-
         pattern = os.path.join(upload_folder, "images", filename)
         files = glob.glob(pattern, recursive=True)
 

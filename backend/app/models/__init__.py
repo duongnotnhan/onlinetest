@@ -8,6 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class Province(db.Model):
+    """Model for Provinces"""
     __tablename__ = "provinces"
 
     province_id = db.Column(db.Integer, primary_key=True)
@@ -25,6 +26,7 @@ class Province(db.Model):
 
 
 class District(db.Model):
+    """Model for Districts"""
     __tablename__ = "districts"
 
     district_id = db.Column(db.Integer, primary_key=True)
@@ -40,6 +42,7 @@ class District(db.Model):
 
 
 class School(db.Model):
+    """Model for Schools"""
     __tablename__ = "schools"
 
     school_id = db.Column(db.Integer, primary_key=True)
@@ -67,6 +70,7 @@ class School(db.Model):
 
 
 class User(db.Model):
+    """Model for Users"""
     __tablename__ = "users"
 
     user_id = db.Column(db.Integer, primary_key=True)
@@ -91,13 +95,16 @@ class User(db.Model):
     )
 
     def set_password(self, password):
+        """Helper method to set password hash"""
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        """Helper method to check password"""
         return check_password_hash(self.password_hash, password)
 
 
 class Teacher(db.Model):
+    """Model for Teachers"""
     __tablename__ = "teachers"
 
     teacher_id = db.Column(db.Integer, primary_key=True)
@@ -121,6 +128,7 @@ class Teacher(db.Model):
 
 
 class Admin(db.Model):
+    """Model for Admins"""
     __tablename__ = "admins"
 
     admin_id = db.Column(db.Integer, primary_key=True)
@@ -134,6 +142,7 @@ class Admin(db.Model):
 
 
 class Student(db.Model):
+    """Model for Students"""
     __tablename__ = "students"
 
     student_id = db.Column(db.Integer, primary_key=True)
@@ -161,6 +170,7 @@ class Student(db.Model):
 
 
 class Subject(db.Model):
+    """Model for Subjects"""
     __tablename__ = "subjects"
 
     subject_id = db.Column(db.Integer, primary_key=True)
@@ -178,6 +188,7 @@ class Subject(db.Model):
 
 
 class ExamSession(db.Model):
+    """Model for Exam Sessions"""
     __tablename__ = "exam_sessions"
 
     exam_session_id = db.Column(db.Integer, primary_key=True)
@@ -206,6 +217,7 @@ class ExamSession(db.Model):
 
 
 class ExamSchedule(db.Model):
+    """Model for Exam Schedules"""
     __tablename__ = "exam_schedules"
 
     schedule_id = db.Column(db.Integer, primary_key=True)
@@ -225,6 +237,7 @@ class ExamSchedule(db.Model):
 
 
 class ExamPaper(db.Model):
+    """Model for Exam Papers"""
     __tablename__ = "exam_papers"
 
     paper_id = db.Column(db.Integer, primary_key=True)
@@ -266,6 +279,7 @@ class ExamPaper(db.Model):
 
 
 class Question(db.Model):
+    """Model for Questions"""
     __tablename__ = "questions"
 
     question_id = db.Column(db.Integer, primary_key=True)
@@ -363,6 +377,7 @@ class Question(db.Model):
 
 
 class AnswerChoice(db.Model):
+    """Model for Answer Choices"""
     __tablename__ = "answer_choices"
 
     choice_id = db.Column(db.Integer, primary_key=True)
@@ -382,6 +397,7 @@ class AnswerChoice(db.Model):
 
 
 class QuestionItem(db.Model):
+    """Model for Question Items (dành cho các câu hỏi có nhiều phần)"""
     __tablename__ = "question_items"
 
     item_id = db.Column(db.Integer, primary_key=True)
@@ -402,6 +418,7 @@ class QuestionItem(db.Model):
 
 
 class Answer(db.Model):
+    """Model for Answers (đáp án chính thức cho câu hỏi)"""
     __tablename__ = "answers"
 
     answer_id = db.Column(db.Integer, primary_key=True)
@@ -429,6 +446,7 @@ class Answer(db.Model):
 
 
 class GeneratedPaper(db.Model):
+    """Model for Generated Exam Papers (dành cho việc tạo đề thi ngẫu nhiên)"""
     __tablename__ = "generated_papers"
 
     generated_paper_id = db.Column(db.Integer, primary_key=True)
@@ -443,6 +461,7 @@ class GeneratedPaper(db.Model):
 
 
 class ExamAttempt(db.Model):
+    """Model for Exam Attempts (lưu trữ thông tin về mỗi lần thi của học sinh)"""
     __tablename__ = "exam_attempts"
 
     attempt_id = db.Column(db.Integer, primary_key=True)
@@ -486,6 +505,7 @@ class ExamAttempt(db.Model):
 
 
 class StudentResponse(db.Model):
+    """Model for Student Responses (lưu trữ câu trả lời của học sinh cho mỗi câu hỏi)"""
     __tablename__ = "student_responses"
 
     response_id = db.Column(db.Integer, primary_key=True)
@@ -513,6 +533,7 @@ class StudentResponse(db.Model):
 
 
 class EssayGrade(db.Model):
+    """Model for Essay Grades (lưu trữ thông tin chấm điểm của giáo viên cho các câu hỏi tự luận)"""
     __tablename__ = "essay_grades"
 
     grade_id = db.Column(db.Integer, primary_key=True)
@@ -539,10 +560,12 @@ class EssayGrade(db.Model):
 
     @property
     def attempt(self):
+        """Helper property to access the related ExamAttempt through StudentResponse"""
         return self.response.attempt if self.response else None
 
 
 class MakeupRegistration(db.Model):
+    """Model for Makeup Exam Registrations (đăng ký thi dự phòng cho học sinh)"""
     __tablename__ = "makeup_registrations"
 
     registration_id = db.Column(db.Integer, primary_key=True)
@@ -572,6 +595,7 @@ class MakeupRegistration(db.Model):
 
 
 class StudentSubjectRegistration(db.Model):
+    """Model for Student Subject Registrations (đăng ký môn thi cho học sinh)"""
     __tablename__ = "student_subject_registration"
 
     registration_id = db.Column(db.Integer, primary_key=True)
@@ -588,6 +612,7 @@ class StudentSubjectRegistration(db.Model):
 
 
 class ExamResult(db.Model):
+    """Model for Exam Results (lưu trữ kết quả thi của học sinh)"""
     __tablename__ = "exam_results"
 
     result_id = db.Column(db.Integer, primary_key=True)
@@ -611,6 +636,7 @@ class ExamResult(db.Model):
 
 
 class ResultQuery(db.Model):
+    """Model for Result Queries"""
     __tablename__ = "result_queries"
 
     query_id = db.Column(db.Integer, primary_key=True)
@@ -622,6 +648,7 @@ class ResultQuery(db.Model):
 
 
 class SpecialQuestionGroup(db.Model):
+    """Model for Special Question Groups"""
     __tablename__ = "special_question_groups"
 
     group_id = db.Column(db.Integer, primary_key=True)
@@ -637,6 +664,7 @@ class SpecialQuestionGroup(db.Model):
 
 
 class AuditLog(db.Model):
+    """Model for Audit Logs"""
     __tablename__ = "audit_logs"
 
     log_id = db.Column(db.Integer, primary_key=True)
@@ -655,6 +683,7 @@ class AuditLog(db.Model):
 
 
 class QuestionSectionType(db.Model):
+    """Model for Question Section Types"""
     __tablename__ = "question_section_types"
 
     section_type_id = db.Column(db.Integer, primary_key=True)
@@ -670,6 +699,7 @@ class QuestionSectionType(db.Model):
 
 
 class QuestionSection(db.Model):
+    """Model for Question Sections"""
     __tablename__ = "question_sections"
 
     section_id = db.Column(db.Integer, primary_key=True)
@@ -711,6 +741,7 @@ class QuestionSection(db.Model):
 
 
 class QuestionPassage(db.Model):
+    """Model for Question Passages"""
     __tablename__ = "question_passages"
 
     passage_id = db.Column(db.Integer, primary_key=True)
@@ -747,6 +778,7 @@ class QuestionPassage(db.Model):
 
 
 class QuestionMedia(db.Model):
+    """Model for Question Media Items"""
     __tablename__ = "question_media"
 
     media_id = db.Column(db.Integer, primary_key=True)
@@ -787,6 +819,7 @@ class QuestionMedia(db.Model):
 
 
 class MediaUploadLog(db.Model):
+    """Model for Logging Media Uploads"""
     __tablename__ = "media_upload_logs"
 
     log_id = db.Column(db.Integer, primary_key=True)
@@ -809,6 +842,7 @@ class MediaUploadLog(db.Model):
 
 
 class RichTextTemplate(db.Model):
+    """Rich Text Model (removing soon)"""
     __tablename__ = "rich_text_templates"
 
     template_id = db.Column(db.Integer, primary_key=True)
@@ -828,6 +862,7 @@ class RichTextTemplate(db.Model):
 
 
 class QuestionComment(db.Model):
+    """Comment Model for Questions (removing soon)"""
     __tablename__ = "question_comments"
 
     comment_id = db.Column(db.Integer, primary_key=True)
@@ -849,6 +884,7 @@ class QuestionComment(db.Model):
 
 
 class QuestionEditHistory(db.Model):
+    """Model for Tracking Question Edit History"""
     __tablename__ = "question_edit_history"
 
     history_id = db.Column(db.Integer, primary_key=True)
@@ -869,6 +905,7 @@ class QuestionEditHistory(db.Model):
 
 
 class QuestionMultiSection(db.Model):
+    """Model for Multi-Section Questions"""
     __tablename__ = "question_multi_section"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -882,6 +919,7 @@ class QuestionMultiSection(db.Model):
 
 
 class QuestionTemplate(db.Model):
+    """Model for Question Templates"""
     __tablename__ = "question_templates"
 
     template_id = db.Column(db.Integer, primary_key=True)

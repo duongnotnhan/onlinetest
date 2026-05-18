@@ -2,8 +2,9 @@
 
 import csv
 import io
+import traceback
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 
 from app import db
@@ -570,7 +571,8 @@ def submit_response(attempt_id):
             return (
                 jsonify(
                     {
-                        "error": "Short answer may contain only digits, minus sign, and comma, up to 4 cells"
+                        "error": "Short answer may contain only digits,\
+                              minus sign, and comma, up to 4 cells"
                     }
                 ),
                 400,
@@ -1038,8 +1040,6 @@ def import_questions_csv(paper_id):
 
     except Exception as e:
         db.session.rollback()
-        import traceback
-
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
@@ -1056,31 +1056,23 @@ def reorder_questions(paper_id):
         if not q_ids:
             return jsonify({"success": True})
 
-        # Lấy tất cả câu hỏi của đề này
         questions = Question.query.filter(
             Question.question_id.in_(q_ids), Question.paper_id == paper_id
         ).all()
 
         q_dict = {q.question_id: q for q in questions}
 
-        # BƯỚC 1: Đẩy tất cả question_number sang số âm để tránh lỗi Unique Constraint
-        # Dùng session.no_autoflush để tránh SQLAlchemy tự động đẩy câu lệnh
-        # lỗi lên DB sớm
         with db.session.no_autoflush:
             for index, qid in enumerate(q_ids, start=1):
                 if qid in q_dict:
-                    # Gán tạm số âm (-1, -2, -3...)
                     q_dict[qid].question_number = -index
 
-            # Commit tạm thời trạng thái âm xuống DB
             db.session.commit()
 
-            # BƯỚC 2: Cập nhật lại số chuẩn từ 1 -> N
             for index, qid in enumerate(q_ids, start=1):
                 if qid in q_dict:
                     q_dict[qid].question_number = index
 
-        # Commit lần cuối chốt danh sách
         db.session.commit()
 
         return jsonify(
@@ -1088,7 +1080,5 @@ def reorder_questions(paper_id):
 
     except Exception as e:
         db.session.rollback()
-        import traceback
-
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
