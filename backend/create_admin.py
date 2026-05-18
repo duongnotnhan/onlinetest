@@ -4,6 +4,7 @@ Creates a new admin user with 2FA setup required on first login
 """
 from os import getenv
 import sys
+import traceback
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 import pymysql
@@ -119,11 +120,9 @@ def create_admin_account():
         return False
     except Exception as e:
         print(f"\n✗ Error: {e}")
-        import traceback
         traceback.print_exc()
         return False
 
 
 if __name__ == '__main__':
-    success = create_admin_account()
-    sys.exit(0 if success else 1)
+    sys.exit(0 if create_admin_account() else 1)
