@@ -304,6 +304,43 @@ CREATE TABLE IF NOT EXISTS `provinces` (
   KEY `idx_province_name` (`province_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO `provinces` (`province_id`, `province_name`, `province_code`, `region`, `created_at`) VALUES
+	(1, 'Hà Nội', '01', 'KVMB', '2026-04-30 06:08:30'),
+	(2, 'Cao Bằng', '04', 'KVMB', '2026-04-30 06:08:30'),
+	(3, 'Tuyên Quang', '08', 'KVMB', '2026-04-30 06:08:30'),
+	(4, 'Điện Biên', '11', 'KVMB', '2026-04-30 06:08:30'),
+	(5, 'Lai Châu', '12', 'KVMB', '2026-04-30 06:08:30'),
+	(6, 'Sơn La', '14', 'KVMB', '2026-04-30 06:08:30'),
+	(7, 'Lào Cai', '15', 'KVMB', '2026-04-30 06:08:30'),
+	(8, 'Thái Nguyên', '19', 'KVMB', '2026-04-30 06:08:30'),
+	(9, 'Lạng Sơn', '20', 'KVMB', '2026-04-30 06:08:30'),
+	(10, 'Quảng Ninh', '22', 'KVMB', '2026-04-30 06:08:30'),
+	(11, 'Bắc Ninh', '24', 'KVMB', '2026-04-30 06:08:30'),
+	(12, 'Phú Thọ', '25', 'KVMB', '2026-04-30 06:08:30'),
+	(13, 'Hải Phòng', '31', 'KVMB', '2026-04-30 06:08:30'),
+	(14, 'Hưng Yên', '33', 'KVMB', '2026-04-30 06:08:30'),
+	(15, 'Ninh Bình', '37', 'KVMB', '2026-04-30 06:08:30'),
+	(16, 'Thanh Hoá', '38', 'KVMT', '2026-04-30 06:08:30'),
+	(17, 'Nghệ An', '40', 'KVMT', '2026-04-30 06:08:30'),
+	(18, 'Hà Tĩnh', '42', 'KVMT', '2026-04-30 06:08:30'),
+	(19, 'Quảng Trị', '44', 'KVMT', '2026-04-30 06:08:30'),
+	(20, 'Thành phố Huế', '46', 'KVMT', '2026-04-30 06:08:30'),
+	(21, 'Đà Nẵng', '48', 'KVMT', '2026-04-30 06:08:30'),
+	(22, 'Quảng Ngãi', '51', 'KVMT', '2026-04-30 06:08:30'),
+	(23, 'Gia Lai', '52', 'KVMT', '2026-04-30 06:08:30'),
+	(24, 'Khánh Hoà', '56', 'KVMT', '2026-04-30 06:08:30'),
+	(25, 'Đắk Lắk', '66', 'KVMT', '2026-04-30 06:08:30'),
+	(26, 'Lâm Đồng', '68', 'KVMT', '2026-04-30 06:08:30'),
+	(27, 'Đồng Nai', '75', 'KVMN', '2026-04-30 06:08:30'),
+	(28, 'Tp. Hồ Chí Minh', '79', 'KVMN', '2026-04-30 06:08:30'),
+	(29, 'Tây Ninh', '80', 'KVMN', '2026-04-30 06:08:30'),
+	(30, 'Đồng Tháp', '82', 'KVMN', '2026-04-30 06:08:30'),
+	(31, 'Vĩnh Long', '86', 'KVMN', '2026-04-30 06:08:30'),
+	(32, 'An Giang', '91', 'KVMN', '2026-04-30 06:08:30'),
+	(33, 'Cần Thơ', '92', 'KVMN', '2026-04-30 06:08:30'),
+	(34, 'Cà Mau', '96', 'KVMN', '2026-04-30 06:08:30'),
+	(35, 'Khác', '97', 'OTHER', '2026-04-30 06:08:30');
+
 CREATE TABLE IF NOT EXISTS `question_comments` (
   `comment_id` int(11) NOT NULL AUTO_INCREMENT,
   `question_id` int(11) NOT NULL,
@@ -422,6 +459,12 @@ CREATE TABLE IF NOT EXISTS `question_section_types` (
   UNIQUE KEY `section_type_name` (`section_type_name`),
   UNIQUE KEY `section_type_key` (`section_type_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `question_section_types` (`section_type_id`, `section_type_name`, `section_type_key`, `description`, `is_active`, `created_at`) VALUES
+	(1, 'Reading Fill-in', 'reading_fill_in', 'Phần đọc - Điền từ', 1, '2026-04-30 06:17:37'),
+	(2, 'Reading Comprehension', 'reading_comprehension', 'Phần đọc - Hiểu', 1, '2026-04-30 06:17:37'),
+	(3, 'Arrangement Correction', 'arrangement_correction', 'Phần xếp lại thứ tự', 1, '2026-04-30 06:17:37'),
+	(4, 'Listening Comprehension', 'listening_comprehension', 'Phần nghe - Hiểu', 1, '2026-04-30 06:17:37');
 
 CREATE TABLE IF NOT EXISTS `question_sections` (
   `section_id` int(11) NOT NULL AUTO_INCREMENT,

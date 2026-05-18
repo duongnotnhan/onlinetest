@@ -13,6 +13,6 @@ upload_bp = Blueprint('upload', __name__, url_prefix='/api/upload')
 export_bp = Blueprint('export', __name__, url_prefix='/api/export')
 
 # Import routes
-from . import auth, admin, teacher, student, exam, grading, result, upload
+from . import auth, admin, teacher, student, exam, grading, result, upload, export
 
 __all__ = ['auth_bp', 'admin_bp', 'teacher_bp', 'student_bp', 'exam_bp', 'grading_bp', 'result_bp', 'upload_bp', 'export_bp']

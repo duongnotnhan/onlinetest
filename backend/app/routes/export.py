@@ -30,18 +30,18 @@ def download_template(template_type):
     if template_type == 'student':
         filename = "Mau_Nhap_Hoc_Sinh.csv"
         writer.writerow(['cccd', 'full_name', 'gender', 'date_of_birth', 'address', 'phone', 'class_name', 'tuchon1', 'tuchon2'])
-        writer.writerow(['012345678912', 'Nguyễn Văn A', 'Nam', '2008-01-15', '123 Đường Trần Phú', '0901234567', '12A1', 'VAT_LI', 'MT'])
-        writer.writerow(['012345678913', 'Trần Thị B', 'Nữ', '2008-11-20', '456 Đường Lê Lợi', '0987654321', '12A2', 'HOA_HO', 'SINH_H'])
+        writer.writerow(['\'012345678912', 'Nguyễn Văn A', 'Nam', '\'2008-01-15', '123 Đường Trần Phú', '\'0901234567', '12A1', 'VAT_LI', 'MT'])
+        writer.writerow(['\'012345678913', 'Trần Thị B', 'Nữ', '\'2008-11-20', '456 Đường Lê Lợi', '\'0987654321', '12A2', 'HOA_HO', 'SINH_H'])
         
     elif template_type == 'question_mc':
         filename = "Mau_Cau_Hoi_Trac_Nghiem.csv"
         writer.writerow(['NoiDung', 'Diem', 'A', 'B', 'C', 'D', 'DapAnDung', 'DinhHuong'])
-        writer.writerow(['Đáp án nào dưới đây chỉ thủ đô của Việt Nam?', '0.25', 'Hà Nội', 'TP.HCM', 'Đà Nẵng', 'Huế', 'A', 'Chung'])
+        writer.writerow(['Đáp án nào dưới đây chỉ thủ đô của Việt Nam?', '0,25', 'Hà Nội', 'TP.HCM', 'Đà Nẵng', 'Huế', 'A', 'Chung'])
         
     elif template_type == 'question_tf':
         filename = "Mau_Cau_Hoi_Dung_Sai.csv"
         writer.writerow(['NoiDung', 'Diem', 'Y_a', 'DS_a', 'Y_b', 'DS_b', 'Y_c', 'DS_c', 'Y_d', 'DS_d', 'DinhHuong'])
-        writer.writerow(['Các nhận định sau đây đúng hay sai?', '1.0', 'Hà Nội là thủ đô của Việt Nam', 'Đúng', 'Mặt trời mọc hướng Tây', 'Sai', '$log(10) = 1$', 'Đúng', 'Nước sôi ở 50 độ C', 'Sai', 'Chung'])
+        writer.writerow(['Các nhận định sau đây đúng hay sai?', '1,0', 'Hà Nội là thủ đô của Việt Nam', 'Đúng', 'Mặt trời mọc hướng Tây', 'Sai', '$log(10) = 1$', 'Đúng', 'Nước sôi ở 50 độ C', 'Sai', 'Chung'])
         
     elif template_type == 'question_sa':
         filename = "Mau_Cau_Hoi_Tra_Loi_Ngan.csv"

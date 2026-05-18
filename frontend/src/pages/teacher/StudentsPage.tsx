@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { teacherAPI } from "@/api";
+import { teacherAPI, exportAPI } from "@/api";
 import {
   FiUpload,
   FiRefreshCw,
@@ -8,6 +8,7 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiEdit,
+  FiDownloadCloud,
 } from "react-icons/fi";
 
 interface Student {
@@ -194,6 +195,12 @@ export default function TeacherStudentsPage() {
             className="btn-primary flex items-center gap-2 text-sm"
           >
             <FiUpload /> Nhập file CSV
+          </button>
+          <button
+            onClick={() => exportAPI.downloadTemplate('student')}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <FiDownloadCloud /> Tải mẫu CSV
           </button>
         </div>
       </div>
@@ -507,13 +514,19 @@ export default function TeacherStudentsPage() {
                         </table>
                       </li>
                     </ul>
+                    <button
+                      onClick={() => exportAPI.downloadTemplate('student')}
+                      className="btn-secondary flex items-center gap-2 text-sm"
+                    >
+                      <FiDownloadCloud /> Tải mẫu CSV
+                    </button>
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
                     <strong className="text-red-600">
                       Sau khi nhập dữ liệu, sẽ KHÔNG thể sửa hoặc xóa Mã định
-                      danh và Giới tính nữa, hãy kiểm tra kỹ thông tin trước khi
-                      nhập.
+                      danh, Giới tính và Ngày sinh nữa, hãy kiểm tra kỹ thông 
+                      tin trước khi nhập.
                     </strong>
                     <input
                       type="file"
