@@ -2,8 +2,6 @@
 
 from flask import Blueprint
 
-from . import (admin, auth, exam, export, grading, result, student, teacher,
-               upload)
 
 # Create blueprints
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
@@ -15,6 +13,9 @@ grading_bp = Blueprint("grading", __name__, url_prefix="/api/grading")
 result_bp = Blueprint("result", __name__, url_prefix="/api/results")
 upload_bp = Blueprint("upload", __name__, url_prefix="/api/upload")
 export_bp = Blueprint("export", __name__, url_prefix="/api/export")
+
+from . import (admin, auth, exam, export, grading, result, student, teacher, # pylint: disable=wrong-import-position
+               upload)
 
 # Import routes
 

@@ -48,19 +48,19 @@ def create_app(config_name="development"):
 
     # Error handlers
     @app.errorhandler(404)
-    def not_found():
-        return {"error": "Resource not found"}, 404
+    def not_found(error):
+        return {"error": "Resource not found", "message": str(error)}, 404
 
     @app.errorhandler(500)
-    def internal_error():
+    def internal_error(error):
         db.session.rollback()
-        return {"error": "Internal server error"}, 500
+        return {"error": "Internal server error", "message": str(error)}, 500
 
     @app.errorhandler(Exception)
     def handle_exception(error):
         if isinstance(error, HTTPException):
             return {"error": error.description}, error.code
         db.session.rollback()
-        return {"error": str(error)}, 500
+        return {"error": "An unexpected error occurred", "message": str(error)}, 500
 
     return app
