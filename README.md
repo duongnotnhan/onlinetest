@@ -7,8 +7,8 @@ Hệ thống tạo đề, tổ chức và chấm thi mô phỏng kỳ thi tốt 
 ## Yêu Cầu Hệ Thống
 
 - Python 3.12+ (nên sử dụng [Python 3.14](https://www.python.org/downloads/release/python-3140/) để đảm bảo tương thích với các thư viện của sản phẩm sử dụng)
-- MariaDB 11.6+ ([Windows](https://mariadb.org/download/?t=mariadb&o=true&p=mariadb&r=11.6.2&os=windows&cpu=x86_64&pkg=msi&mirror=archive) | Linux/MacOS có thể cài đặt qua các bước bên dưới)
-- Node.js v24+ và npm 11+ ([Windows](https://nodejs.org/dist/v24.15.0/node-v24.15.0-x64.msi) | Linux/MacOS có thể cài đặt qua các bước bên dưới)
+- MariaDB 11.6+ ([Windows](https://mariadb.org/download/?t=mariadb&o=true&p=mariadb&r=11.6.2&os=windows&cpu=x86_64&pkg=msi&mirror=archive) // Linux/MacOS có thể cài đặt qua các bước bên dưới)
+- Node.js v24+ và npm 11+ ([Windows](https://nodejs.org/dist/v24.15.0/node-v24.15.0-x64.msi) // Linux/MacOS có thể cài đặt qua các bước bên dưới)
 
 ***Các bước hướng dẫn dưới đây yêu cầu chạy trong môi trường terminal (CMD, Terminal, v.v.) và có thể khác nhau tùy vào hệ điều hành mà hệ thống sẽ được triển khai. Đối với Windows, KHÔNG sử dụng PowerShell để chạy các câu lệnh, thay vào đó hãy sử dụng CMD hoặc Windows Terminal với profile CMD.***
 
