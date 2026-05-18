@@ -3,6 +3,7 @@ ignore=venv,env,.git,__pycache__
 
 [MESSAGES CONTROL]
 disable=
+    duplicate-code,
     import-outside-toplevel,
     broad-exception-caught,
     broad-exception-raised,

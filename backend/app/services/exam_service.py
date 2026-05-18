@@ -998,6 +998,7 @@ class ExamScoringService:
 
     @staticmethod
     def auto_submit_overdue_exams():
+        """Auto-submit exams that have passed their end time or duration"""
         try:
             now = datetime.utcnow()
             ongoing_attempts = ExamAttempt.query.filter_by(
