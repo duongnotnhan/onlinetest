@@ -2,12 +2,13 @@
 
 import csv
 import io
-from flask import Blueprint, jsonify, request, send_file
-from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from app import db
-from app.models import User, Student, ExamAttempt, Subject, ExamSession, School
+from app.models import ExamAttempt, ExamSession, School, Student, Subject, User
+from flask import Blueprint, jsonify, request, send_file
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from . import export_bp
 

@@ -1,32 +1,20 @@
 """Student routes"""
 
-from flask import request, jsonify, send_file
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime, timedelta
-from functools import wraps
 import io
 import json
 import random
+from datetime import datetime, timedelta
+from functools import wraps
 
 from app import db
-from app.models import (
-    User,
-    Student,
-    ExamAttempt,
-    StudentResponse,
-    ExamResult,
-    ExamSchedule,
-    StudentSubjectRegistration,
-    ExamSession,
-    Subject,
-    ExamPaper,
-    GeneratedPaper,
-    Question,
-    QuestionItem,
-    AnswerChoice,
-    Answer,
-    QuestionSection,
-)
+from app.models import (Answer, AnswerChoice, ExamAttempt, ExamPaper,
+                        ExamResult, ExamSchedule, ExamSession, GeneratedPaper,
+                        Question, QuestionItem, QuestionSection, Student,
+                        StudentResponse, StudentSubjectRegistration, Subject,
+                        User)
+from flask import jsonify, request, send_file
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from . import student_bp
 
 
@@ -688,7 +676,7 @@ def submit_exam(attempt_id):
         )
 
         # Kiểm tra CÓ THỰC SỰ CÓ câu tự luận không (loại trừ dạng short_answer)
-        from app.models import Teacher, EssayGrade
+        from app.models import EssayGrade, Teacher
 
         # Kiểm tra xem đề bài này có chứa câu hỏi loại 'essay' không
         generated_paper = GeneratedPaper.query.get(attempt.generated_paper_id)
@@ -839,7 +827,7 @@ def _is_valid_four_cell_answer(value):
 
 
 def _assign_essay_graders(attempt):
-    from app.models import Teacher, EssayGrade, User
+    from app.models import EssayGrade, Teacher, User
 
     essay_responses = (
         db.session.query(StudentResponse)

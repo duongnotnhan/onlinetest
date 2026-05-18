@@ -1,10 +1,12 @@
 """Result query routes"""
 
-from flask import request, jsonify
 from datetime import datetime
-from . import result_bp
+
 from app import db
-from app.models import Student, ExamResult, ExamSession, Subject, ResultQuery
+from app.models import ExamResult, ExamSession, ResultQuery, Student, Subject
+from flask import jsonify, request
+
+from . import result_bp
 
 
 @result_bp.route("/query", methods=["POST"])

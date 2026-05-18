@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """Verify database schema"""
-import pymysql
 import os
 import sys
 from pathlib import Path
+
+import pymysql
 from dotenv import load_dotenv
 
 load_dotenv()

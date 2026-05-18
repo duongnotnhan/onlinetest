@@ -1,10 +1,11 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-from flask_migrate import Migrate
-from werkzeug.exceptions import HTTPException
 import os
+
+from flask import Flask
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.exceptions import HTTPException
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -31,17 +32,8 @@ def create_app(config_name="development"):
         os.makedirs(app.config["UPLOAD_FOLDER"])
 
     # Register blueprints
-    from app.routes import (
-        auth_bp,
-        admin_bp,
-        teacher_bp,
-        student_bp,
-        exam_bp,
-        grading_bp,
-        result_bp,
-        upload_bp,
-        export_bp,
-    )
+    from app.routes import (admin_bp, auth_bp, exam_bp, export_bp, grading_bp,
+                            result_bp, student_bp, teacher_bp, upload_bp)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)

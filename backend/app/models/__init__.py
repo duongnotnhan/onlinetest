@@ -1,9 +1,10 @@
 """Database Models"""
 
-from app import db
 from datetime import datetime
+
+from app import db
 from sqlalchemy.dialects.mysql import JSON
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class Province(db.Model):

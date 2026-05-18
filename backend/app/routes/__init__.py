@@ -1,7 +1,9 @@
 """Routes initialization"""
 
-from . import auth, admin, teacher, student, exam, grading, result, upload, export
 from flask import Blueprint
+
+from . import (admin, auth, exam, export, grading, result, student, teacher,
+               upload)
 
 # Create blueprints
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")

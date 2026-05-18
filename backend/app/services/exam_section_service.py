@@ -1,19 +1,14 @@
 """Exam Section Service - Quản lý Section, Passage, và Question trong Section"""
 
-from app import db
-from app.models import (
-    QuestionSection,
-    QuestionSectionType,
-    QuestionPassage,
-    Question,
-    ExamPaper,
-    User,
-    QuestionEditHistory,
-)
-from app.services.rich_text_service import RichTextService
-from datetime import datetime
-from typing import Optional, Tuple, List, Dict
 import json
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
+from app import db
+from app.models import (ExamPaper, Question, QuestionEditHistory,
+                        QuestionPassage, QuestionSection, QuestionSectionType,
+                        User)
+from app.services.rich_text_service import RichTextService
 
 
 class ExamSectionService:

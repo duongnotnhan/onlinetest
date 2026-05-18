@@ -1,30 +1,18 @@
 """Admin routes - QTV (Quản Trị Viên)"""
 
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from functools import wraps
 
 from app import db
-from app.models import (
-    User,
-    Teacher,
-    Admin,
-    School,
-    ExamSession,
-    ExamSchedule,
-    Subject,
-    MakeupRegistration,
-    ExamResult,
-    StudentSubjectRegistration,
-    Student,
-    ExamAttempt,
-    StudentResponse,
-    Province,
-    District,
-)
-from app.utils.validators import validate_date_format
+from app.models import (Admin, District, ExamAttempt, ExamResult, ExamSchedule,
+                        ExamSession, MakeupRegistration, Province, School,
+                        Student, StudentResponse, StudentSubjectRegistration,
+                        Subject, Teacher, User)
 from app.services.exam_service import ExamScoringService
+from app.utils.validators import validate_date_format
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from . import admin_bp
 
 
@@ -1231,15 +1219,8 @@ def _school_display_name(school):
 @admin_required
 def get_essay_assignments():
     """Lấy danh sách các bài tự luận và người chấm"""
-    from app.models import (
-        EssayGrade,
-        Question,
-        StudentResponse,
-        ExamAttempt,
-        Student,
-        Subject,
-        User,
-    )
+    from app.models import (EssayGrade, ExamAttempt, Question, Student,
+                            StudentResponse, Subject, User)
 
     session_id = request.args.get("exam_session_id", type=int)
 
@@ -1304,7 +1285,7 @@ def get_essay_assignments():
 @admin_required
 def get_eligible_graders():
     """Lấy danh sách các giáo viên đủ điều kiện chấm tự luận"""
-    from app.models import Teacher, User, School
+    from app.models import School, Teacher, User
 
     teachers = Teacher.query.filter_by(
         approval_status="approved", subject_specialty="NGU_VAN_GRADER"

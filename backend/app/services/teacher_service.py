@@ -1,16 +1,11 @@
 """Teacher Service - Business logic for GVQL operations"""
 
-from app import db
-from app.models import (
-    User,
-    Student,
-    Teacher,
-    StudentSubjectRegistration,
-    MakeupRegistration,
-    ExamSession,
-)
-from app.utils.validators import validate_cccd, validate_password
 from datetime import datetime
+
+from app import db
+from app.models import (ExamSession, MakeupRegistration, Student,
+                        StudentSubjectRegistration, Teacher, User)
+from app.utils.validators import validate_cccd, validate_password
 
 
 class TeacherService:

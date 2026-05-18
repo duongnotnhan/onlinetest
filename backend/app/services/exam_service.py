@@ -1,8 +1,10 @@
 """Authentication and Exam services"""
 
-from app import db
-from app.models import User, Teacher, Student, ExamSession, StudentSubjectRegistration
 from datetime import datetime, timedelta
+
+from app import db
+from app.models import (ExamSession, Student, StudentSubjectRegistration,
+                        Teacher, User)
 from flask import current_app
 
 
@@ -193,7 +195,7 @@ class ResultService:
     @staticmethod
     def calculate_score(exam_attempt_id):
         """Calculate exam score"""
-        from app.models import ExamAttempt, StudentResponse, Answer
+        from app.models import Answer, ExamAttempt, StudentResponse
 
         attempt = ExamAttempt.query.get(exam_attempt_id)
         if not attempt:
@@ -224,7 +226,7 @@ class ResultService:
     @staticmethod
     def publish_results(exam_session_id):
         """Publish exam results"""
-        from app.models import ExamResult, ExamAttempt
+        from app.models import ExamAttempt, ExamResult
 
         attempts = ExamAttempt.query.filter_by(
             exam_session_id=exam_session_id, status="graded"
@@ -368,7 +370,7 @@ class ExamPaperService:
     @staticmethod
     def create_exam_paper(subject_id, exam_session_id, paper_code, created_by):
         """Create exam paper for subject"""
-        from app.models import Subject, ExamPaper
+        from app.models import ExamPaper, Subject
 
         try:
             subject = Subject.query.get(subject_id)
@@ -440,7 +442,8 @@ class ExamPaperService:
         subsection_id=None,
     ):
         """Add question to paper"""
-        from app.models import ExamPaper, Question, AnswerChoice, QuestionItem, Answer
+        from app.models import (Answer, AnswerChoice, ExamPaper, Question,
+                                QuestionItem)
 
         try:
             paper = ExamPaper.query.get(paper_id)
@@ -532,7 +535,7 @@ class ExamPaperService:
             choice_text,
             display_order):
         """Add answer choice to question"""
-        from app.models import Question, AnswerChoice
+        from app.models import AnswerChoice, Question
 
         try:
             question = Question.query.get(question_id)
@@ -561,7 +564,7 @@ class ExamPaperService:
     @staticmethod
     def set_answer_key(question_id, correct_answer, created_by):
         """Set answer key for question"""
-        from app.models import Question, Answer
+        from app.models import Answer, Question
 
         try:
             question = Question.query.get(question_id)
@@ -591,9 +594,11 @@ class ExamPaperService:
     @staticmethod
     def generate_paper_versions(paper_id, num_versions=3):
         """Generate randomized paper versions"""
-        from app.models import ExamPaper, Question, GeneratedPaper, QuestionSection
-        import random
         import json
+        import random
+
+        from app.models import (ExamPaper, GeneratedPaper, Question,
+                                QuestionSection)
 
         try:
             paper = ExamPaper.query.get(paper_id)
@@ -802,7 +807,7 @@ class ExamPaperService:
     @staticmethod
     def finalize_paper(paper_id):
         """Finalize paper"""
-        from app.models import ExamPaper, Question, Answer, GeneratedPaper
+        from app.models import Answer, ExamPaper, GeneratedPaper, Question
 
         try:
             paper = ExamPaper.query.get(paper_id)
@@ -849,17 +854,11 @@ class ExamPaperService:
 
     @staticmethod
     def get_paper_details(paper_id):
-        from app.models import (
-            ExamPaper,
-            Question,
-            AnswerChoice,
-            QuestionItem,
-            Answer,
-            GeneratedPaper,
-            Subject,
-            QuestionSection,
-        )
         import json
+
+        from app.models import (Answer, AnswerChoice, ExamPaper,
+                                GeneratedPaper, Question, QuestionItem,
+                                QuestionSection, Subject)
 
         try:
             paper = ExamPaper.query.get(paper_id)
@@ -979,7 +978,7 @@ class ExamScoringService:
     @staticmethod
     def auto_score_multiple_choice(attempt_id):
         """Auto-score multiple choice questions"""
-        from app.models import ExamAttempt, StudentResponse, Question
+        from app.models import ExamAttempt, Question, StudentResponse
 
         try:
             attempt = ExamAttempt.query.get(attempt_id)
@@ -1026,9 +1025,10 @@ class ExamScoringService:
 
     @staticmethod
     def auto_submit_overdue_exams():
+        from datetime import datetime, timedelta
+
         from app import db
         from app.models import ExamAttempt
-        from datetime import datetime, timedelta
 
         try:
             now = datetime.utcnow()
@@ -1156,9 +1156,11 @@ def _should_skip_for_informatics(attempt, question):
 
 
 def _score_response(attempt, question, response):
-    from app.models import Answer, GeneratedPaper, AnswerChoice, QuestionSection
     import json
     import random
+
+    from app.models import (Answer, AnswerChoice, GeneratedPaper,
+                            QuestionSection)
 
     if (
         response.response_value is None

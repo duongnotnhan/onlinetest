@@ -1,27 +1,18 @@
 """Teacher routes - GVQL (Giáo Viên Quản Lý)"""
 
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
-from functools import wraps
 import csv
 import io
+from datetime import datetime
+from functools import wraps
 
 from app import db
-from app.models import (
-    ExamResult,
-    User,
-    Teacher,
-    Student,
-    School,
-    ExamSession,
-    StudentSubjectRegistration,
-    MakeupRegistration,
-    Subject,
-    District,
-    Province,
-)
+from app.models import (District, ExamResult, ExamSession, MakeupRegistration,
+                        Province, School, Student, StudentSubjectRegistration,
+                        Subject, Teacher, User)
 from app.utils.validators import validate_cccd, validate_password
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from . import teacher_bp
 
 
@@ -651,6 +642,8 @@ def import_students():
                     row["date_of_birth"], pattern=r"^\d{4}-\d{2}-\d{2}$"
                 ):
                     raise ValueError("Ngày sinh phải có định dạng YYYY-MM-DD.")
+
+                date_of_birth = None
                 if row.get("date_of_birth"):
                     date_of_birth = datetime.strptime(
                         row["date_of_birth"], "%Y-%m-%d"

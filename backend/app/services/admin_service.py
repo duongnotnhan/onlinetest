@@ -1,18 +1,11 @@
 """Admin Service - Business logic for QTV operations"""
 
-from app import db
-from app.models import (
-    Teacher,
-    ExamSession,
-    ExamSchedule,
-    ExamResult,
-    ExamAttempt,
-    StudentResponse,
-    Subject,
-    MakeupRegistration,
-    User,
-)
 from datetime import datetime
+
+from app import db
+from app.models import (ExamAttempt, ExamResult, ExamSchedule, ExamSession,
+                        MakeupRegistration, StudentResponse, Subject, Teacher,
+                        User)
 
 
 class AdminService:

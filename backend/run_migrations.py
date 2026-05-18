@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """Run database migrations"""
-import pymysql
 import os
 import sys
 from pathlib import Path
+
+import pymysql
 from dotenv import load_dotenv
 
 load_dotenv()

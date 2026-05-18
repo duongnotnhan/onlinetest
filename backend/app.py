@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-from flask import Flask
-from flask_apscheduler import APScheduler
 import os
+
 from app import create_app, db
 from dotenv import load_dotenv
+from flask import Flask
+from flask_apscheduler import APScheduler
 
 load_dotenv()
 
@@ -89,7 +90,7 @@ def seed_db():
 if __name__ == '__main__':
     app.run(
         host=os.getenv('SERVER_HOST', '0.0.0.0'),
-        port=int(os.getenv('SERVER_PORT', 5000)),
+        port=int(os.getenv('SERVER_PORT', '5000')),
         debug=app.config['DEBUG'] if os.getenv('DEBUG') == 'True' else False,
         use_reloader=False
     )

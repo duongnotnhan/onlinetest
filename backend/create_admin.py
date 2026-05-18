@@ -2,12 +2,13 @@
 Admin account creation script
 Creates a new admin user with 2FA setup required on first login
 """
-from os import getenv
 import sys
 import traceback
+from os import getenv
+
+import pymysql
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
-import pymysql
 
 # Load environment variables
 load_dotenv()

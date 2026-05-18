@@ -1,20 +1,15 @@
 """Rich Text và Media Management Service"""
 
-from app import db
-from app.models import (
-    QuestionMedia,
-    MediaUploadLog,
-    RichTextTemplate,
-    QuestionComment,
-    Question,
-    QuestionPassage,
-    QuestionSection,
-)
-from datetime import datetime
-import os
 import json
+import os
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
+
 import bleach  # Để sanitize HTML
+from app import db
+from app.models import (MediaUploadLog, Question, QuestionComment,
+                        QuestionMedia, QuestionPassage, QuestionSection,
+                        RichTextTemplate)
 
 
 class RichTextService:

@@ -1,14 +1,16 @@
 """File upload utilities and API endpoints"""
 
-import os
-from datetime import datetime
-from werkzeug.utils import secure_filename
-from flask import request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from pathlib import Path
-import uuid
-from PIL import Image
 import io
+import os
+import uuid
+from datetime import datetime
+from pathlib import Path
+
+from flask import current_app, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from PIL import Image
+from werkzeug.utils import secure_filename
+
 from . import upload_bp
 
 # Allowed extensions and size limits

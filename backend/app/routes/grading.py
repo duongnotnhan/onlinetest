@@ -1,24 +1,15 @@
 """Grading routes - Essay grading and scoring"""
 
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 from functools import wraps
 
 from app import db
-from app.models import (
-    User,
-    Teacher,
-    ExamAttempt,
-    StudentResponse,
-    Question,
-    Answer,
-    EssayGrade,
-    ExamResult,
-    ExamSession,
-    Subject,
-    ExamSchedule,
-)
+from app.models import (Answer, EssayGrade, ExamAttempt, ExamResult,
+                        ExamSchedule, ExamSession, Question, StudentResponse,
+                        Subject, Teacher, User)
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from . import grading_bp
 
 

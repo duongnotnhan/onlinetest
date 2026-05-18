@@ -3,6 +3,11 @@ Flask-SQLAlchemy
 Flask-JWT-Extended
 Flask-Cors
 Flask-APScheduler
+flask_migrate
+qrcode
+pyotp
 python-dotenv
 PyMySQL
+Pillow
 openpyxl
+bleach

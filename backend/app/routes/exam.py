@@ -1,33 +1,21 @@
 """Exam routes - Exam paper management"""
 
-from app.models import QuestionSection, QuestionSectionType
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime, timedelta
-from functools import wraps
-import json
 import csv
 import io
+import json
+from datetime import datetime, timedelta
+from functools import wraps
 
 from app import db
-from app.models import (
-    User,
-    ExamPaper,
-    Question,
-    AnswerChoice,
-    Answer,
-    GeneratedPaper,
-    QuestionItem,
-    Subject,
-    ExamSession,
-    ExamSchedule,
-    ExamAttempt,
-    StudentResponse,
-    Student,
-    EssayGrade,
-    Teacher,
-)
+from app.models import (Answer, AnswerChoice, EssayGrade, ExamAttempt,
+                        ExamPaper, ExamSchedule, ExamSession, GeneratedPaper,
+                        Question, QuestionItem, QuestionSection,
+                        QuestionSectionType, Student, StudentResponse, Subject,
+                        Teacher, User)
 from app.services.exam_service import ExamPaperService, ExamScoringService
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from . import exam_bp
 
 
