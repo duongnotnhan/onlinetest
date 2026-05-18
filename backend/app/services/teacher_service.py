@@ -1,8 +1,13 @@
 """Teacher Service - Business logic for GVQL operations"""
+
 from app import db
 from app.models import (
-    User, Student, Teacher, StudentSubjectRegistration,
-    MakeupRegistration, ExamSession
+    User,
+    Student,
+    Teacher,
+    StudentSubjectRegistration,
+    MakeupRegistration,
+    ExamSession,
 )
 from app.utils.validators import validate_cccd, validate_password
 from datetime import datetime
@@ -13,22 +18,23 @@ class TeacherService:
 
     @staticmethod
     def create_student_account(
-            cccd,
-            full_name,
-            gender,
-            date_of_birth,
-            address,
-            phone,
-            class_name,
-            school_id,
-            teacher_user_id,
-            permanent_address=None):
+        cccd,
+        full_name,
+        gender,
+        date_of_birth,
+        address,
+        phone,
+        class_name,
+        school_id,
+        teacher_user_id,
+        permanent_address=None,
+    ):
         """Create student account"""
         try:
             # Validate CCCD not already used
             existing = Student.query.filter_by(cccd=cccd).first()
             if existing:
-                return False, 'CCCD already registered'
+                return False, "CCCD already registered"
 
             # Create user account
             username = cccd
@@ -38,10 +44,10 @@ class TeacherService:
                 username=username,
                 phone=phone,
                 full_name=full_name,
-                role='student',
+                role="student",
                 school_id=school_id,
                 is_active=True,
-                is_first_login=True
+                is_first_login=True,
             )
             user.set_password(temp_password)
 
@@ -59,16 +65,16 @@ class TeacherService:
                 address=address,
                 phone=phone,
                 class_name=class_name,
-                permanent_address=permanent_address or address
+                permanent_address=permanent_address or address,
             )
 
             db.session.add(student)
             db.session.commit()
 
             return True, {
-                'student_id': student.student_id,
-                'username': username,
-                'temporary_password': temp_password
+                "student_id": student.student_id,
+                "username": username,
+                "temporary_password": temp_password,
             }
         except Exception as e:
             db.session.rollback()
@@ -76,10 +82,8 @@ class TeacherService:
 
     @staticmethod
     def bulk_register_students(
-            student_ids,
-            subject_ids,
-            exam_session_id,
-            teacher_user_id):
+        student_ids, subject_ids, exam_session_id, teacher_user_id
+    ):
         """Register students for exam"""
         try:
             teacher = Teacher.query.filter_by(user_id=teacher_user_id).first()
@@ -90,8 +94,9 @@ class TeacherService:
             for student_id in student_ids:
                 student = Student.query.get(student_id)
                 if not student or student.school_id != teacher.school_id:
-                    errors.append({'student_id': student_id,
-                                  'error': 'Invalid student'})
+                    errors.append(
+                        {"student_id": student_id, "error": "Invalid student"}
+                    )
                     continue
 
                 for subject_id in subject_ids:
@@ -99,7 +104,7 @@ class TeacherService:
                     existing = StudentSubjectRegistration.query.filter_by(
                         student_id=student_id,
                         subject_id=subject_id,
-                        exam_session_id=exam_session_id
+                        exam_session_id=exam_session_id,
                     ).first()
 
                     if not existing:
@@ -107,24 +112,22 @@ class TeacherService:
                             student_id=student_id,
                             subject_id=subject_id,
                             exam_session_id=exam_session_id,
-                            registered_by=teacher_user_id
+                            registered_by=teacher_user_id,
                         )
                         db.session.add(registration)
 
                 registered += 1
 
             db.session.commit()
-            return True, {'registered': registered, 'errors': errors}
+            return True, {"registered": registered, "errors": errors}
         except Exception as e:
             db.session.rollback()
             return False, str(e)
 
     @staticmethod
     def submit_makeup_request(
-            student_ids,
-            subject_id,
-            exam_session_id,
-            teacher_user_id):
+        student_ids, subject_id, exam_session_id, teacher_user_id
+    ):
         """Submit makeup exam request"""
         try:
             teacher = Teacher.query.filter_by(user_id=teacher_user_id).first()
@@ -132,7 +135,7 @@ class TeacherService:
             # Verify session exists
             session = ExamSession.query.get(exam_session_id)
             if not session:
-                return False, 'Session not found'
+                return False, "Session not found"
 
             registered = 0
             errors = []
@@ -140,8 +143,9 @@ class TeacherService:
             for student_id in student_ids:
                 student = Student.query.get(student_id)
                 if not student or student.school_id != teacher.school_id:
-                    errors.append({'student_id': student_id,
-                                  'error': 'Invalid student'})
+                    errors.append(
+                        {"student_id": student_id, "error": "Invalid student"}
+                    )
                     continue
 
                 # Check if already requested
@@ -149,7 +153,7 @@ class TeacherService:
                     student_id=student_id,
                     exam_session_id=exam_session_id,
                     subject_id=subject_id,
-                    approval_status='pending'
+                    approval_status="pending",
                 ).first()
 
                 if not existing:
@@ -158,14 +162,14 @@ class TeacherService:
                         exam_session_id=exam_session_id,
                         subject_id=subject_id,
                         requested_by=teacher_user_id,
-                        request_date=datetime.utcnow()
+                        request_date=datetime.utcnow(),
                     )
                     db.session.add(registration)
 
                 registered += 1
 
             db.session.commit()
-            return True, {'registered': registered, 'errors': errors}
+            return True, {"registered": registered, "errors": errors}
         except Exception as e:
             db.session.rollback()
             return False, str(e)
@@ -182,29 +186,29 @@ class StudentImportService:
         # Check required fields
         for field in required_fields:
             if not row.get(field):
-                errors.append(f'Missing {field}')
+                errors.append(f"Missing {field}")
 
         if errors:
             return False, errors
 
         # Validate CCCD
-        if not validate_cccd(row.get('cccd', '')):
-            errors.append('Invalid CCCD format')
+        if not validate_cccd(row.get("cccd", "")):
+            errors.append("Invalid CCCD format")
 
         # Check CCCD uniqueness
-        existing = Student.query.filter_by(cccd=row['cccd']).first()
+        existing = Student.query.filter_by(cccd=row["cccd"]).first()
         if existing:
-            errors.append('CCCD already registered')
+            errors.append("CCCD already registered")
 
         # Validate date format
         try:
-            datetime.strptime(row['date_of_birth'], '%Y-%m-%d')
+            datetime.strptime(row["date_of_birth"], "%Y-%m-%d")
         except ValueError:
-            errors.append('Invalid date format (use YYYY-MM-DD)')
+            errors.append("Invalid date format (use YYYY-MM-DD)")
 
         # Validate gender
-        if row.get('gender') not in ['male', 'female', 'other']:
-            errors.append('Invalid gender (use: male, female, other)')
+        if row.get("gender") not in ["male", "female", "other"]:
+            errors.append("Invalid gender (use: male, female, other)")
 
         if errors:
             return False, errors
@@ -220,46 +224,50 @@ class StudentImportService:
             errors = []
 
             required_fields = [
-                'cccd',
-                'full_name',
-                'gender',
-                'date_of_birth',
-                'address',
-                'phone',
-                'class_name']
+                "cccd",
+                "full_name",
+                "gender",
+                "date_of_birth",
+                "address",
+                "phone",
+                "class_name",
+            ]
 
             for row_num, row in enumerate(students_data, start=2):
                 is_valid, field_errors = StudentImportService.validate_student_row(
-                    row, required_fields)
+                    row, required_fields
+                )
 
                 if not is_valid:
                     failed += 1
-                    errors.append({'row': row_num, 'errors': field_errors})
+                    errors.append({"row": row_num, "errors": field_errors})
                     continue
 
                 # Create student
                 success, result = TeacherService.create_student_account(
-                    cccd=row['cccd'],
-                    full_name=row['full_name'],
-                    gender=row['gender'],
-                    date_of_birth=datetime.strptime(row['date_of_birth'], '%Y-%m-%d').date(),
-                    address=row['address'],
-                    phone=row['phone'],
-                    class_name=row['class_name'],
+                    cccd=row["cccd"],
+                    full_name=row["full_name"],
+                    gender=row["gender"],
+                    date_of_birth=datetime.strptime(
+                        row["date_of_birth"], "%Y-%m-%d"
+                    ).date(),
+                    address=row["address"],
+                    phone=row["phone"],
+                    class_name=row["class_name"],
                     school_id=school_id,
                     teacher_user_id=teacher_user_id,
-                    permanent_address=row.get('permanent_address', row['address'])
+                    permanent_address=row.get("permanent_address", row["address"]),
                 )
 
                 if success:
                     imported += 1
                 else:
                     failed += 1
-                    errors.append({'row': row_num, 'errors': [result]})
+                    errors.append({"row": row_num, "errors": [result]})
 
             return imported, failed, errors
         except Exception as e:
-            return 0, len(students_data), [{'error': str(e)}]
+            return 0, len(students_data), [{"error": str(e)}]
 
 
 class StudentBulkService:
@@ -272,9 +280,9 @@ class StudentBulkService:
 
         if search:
             query = query.filter(
-                (Student.full_name.ilike(f'%{search}%')) |
-                (Student.cccd.ilike(f'%{search}%')) |
-                (Student.student_code.ilike(f'%{search}%'))
+                (Student.full_name.ilike(f"%{search}%"))
+                | (Student.cccd.ilike(f"%{search}%"))
+                | (Student.student_code.ilike(f"%{search}%"))
             )
 
         total = query.count()
@@ -290,7 +298,7 @@ class StudentBulkService:
             student = Student.query.get(student_id)
 
             if not student or student.school_id != teacher.school_id:
-                return False, 'Student not found'
+                return False, "Student not found"
 
             # Generate temporary password
             temp_password = f"Temp@{student.cccd[-6:]}"

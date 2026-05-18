@@ -11,26 +11,38 @@ jwt = JWTManager()
 migrate = Migrate()
 
 
-def create_app(config_name='development'):
+def create_app(config_name="development"):
     """Application factory"""
     app = Flask(__name__)
 
     # Load configuration
     from config import config
-    app.config.from_object(config.get(config_name, config['development']))
+
+    app.config.from_object(config.get(config_name, config["development"]))
 
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    CORS(app, origins=app.config['CORS_ORIGINS'])
+    CORS(app, origins=app.config["CORS_ORIGINS"])
 
     # Create upload folder if it doesn't exist
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
 
     # Register blueprints
-    from app.routes import auth_bp, admin_bp, teacher_bp, student_bp, exam_bp, grading_bp, result_bp, upload_bp, export_bp
+    from app.routes import (
+        auth_bp,
+        admin_bp,
+        teacher_bp,
+        student_bp,
+        exam_bp,
+        grading_bp,
+        result_bp,
+        upload_bp,
+        export_bp,
+    )
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(teacher_bp)
@@ -44,18 +56,18 @@ def create_app(config_name='development'):
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
-        return {'error': 'Resource not found'}, 404
+        return {"error": "Resource not found"}, 404
 
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return {'error': 'Internal server error'}, 500
+        return {"error": "Internal server error"}, 500
 
     @app.errorhandler(Exception)
     def handle_exception(error):
         if isinstance(error, HTTPException):
-            return {'error': error.description}, error.code
+            return {"error": error.description}, error.code
         db.session.rollback()
-        return {'error': str(error)}, 500
+        return {"error": str(error)}, 500
 
     return app
