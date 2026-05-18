@@ -13,13 +13,26 @@ from werkzeug.security import generate_password_hash
 # Load environment variables
 load_dotenv()
 
+def verify_info(username, email, password, full_name):
+    """Basic validation for admin account info"""
+    if not username or not email or not password or not full_name:
+        print("✗ All fields except phone are required")
+        return False
+    if len(password) < 8:
+        print("✗ Password must be at least 8 characters")
+        return False
+    if not __import__('re').match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+        print("✗ Invalid email format")
+        return False
+    return True
+
 
 def create_admin_account():
     """Create a new admin account in the database"""
 
     # Get database configuration
     db_host = getenv('DB_HOST', 'localhost')
-    db_port = int(getenv('DB_PORT', 3306))
+    db_port = int(getenv('DB_PORT', '3306'))
     db_user = getenv('DB_USER', 'root')
     db_password = getenv('DB_PASSWORD', 'root')
     db_name = getenv('DB_NAME', 'exam_system')
@@ -30,22 +43,13 @@ def create_admin_account():
 
     # Prompt for admin details
     username = input("\nEnter admin username: ").strip()
-    if not username:
-        print("✗ Username cannot be empty")
-        return False
-
     email = input("Enter admin email: ").strip()
-    if not email or '@' not in email:
-        print("✗ Invalid email format")
-        return False
-
     password = input("Enter admin password (min 8 chars): ").strip()
-    if len(password) < 8:
-        print("✗ Password must be at least 8 characters")
-        return False
-
     full_name = input("Enter full name: ").strip()
     phone = input("Enter phone number (optional): ").strip() or None
+
+    if not verify_info(username, email, password, full_name):
+        return False
 
     try:
         # Connect to database
@@ -67,7 +71,7 @@ def create_admin_account():
             (username,
              email))
         if cursor.fetchone():
-            print("✗ User with this username or email already exists")
+            print(f"✗ User with username or email '{username}' or '{email}' already exists")
             cursor.close()
             connection.close()
             return False
@@ -107,7 +111,7 @@ def create_admin_account():
         print(f"Username: {username}")
         print(f"Email: {email}")
         print(f"Full Name: {full_name}")
-        print(f"\n⚠ First Login Setup Required:")
+        print("\n⚠ First Login Setup Required:")
         print("  - Change password on first login")
         print("  - Setup 2FA (Two-Factor Authentication)")
         print("=" * 60)

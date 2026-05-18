@@ -1,0 +1,15 @@
+[MASTER]
+ignore=venv,env,.git,__pycache__
+
+[MESSAGES CONTROL]
+disable=
+    import-outside-toplevel,
+    broad-exception-caught,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-return-statements,
+    too-few-public-methods,
+    no-name-in-module,
+    redefined-outer-name,
+    too-many-nested-blocks,

@@ -1,3 +1,4 @@
+"""Configuration for Flask application"""
 import os
 from datetime import timedelta
 
@@ -7,6 +8,7 @@ load_dotenv()
 
 
 def env_bool(name, default=False):
+    """Helper to parse boolean environment variables"""
     value = os.getenv(name)
     if value is None:
         return default
@@ -51,7 +53,7 @@ class Config:
 
     # Email
     MAIL_SERVER = os.getenv('MAIL_SERVER')
-    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_PORT = int(os.getenv('MAIL_PORT', '587'))
     MAIL_USE_TLS = env_bool('MAIL_USE_TLS', True)
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')

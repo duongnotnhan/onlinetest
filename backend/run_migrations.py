@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Run database migrations"""
 import os
 import sys
@@ -17,7 +16,7 @@ def get_db_connection():
     """Get database connection"""
     connection = pymysql.connect(
         host=os.getenv('DB_HOST', 'localhost'),
-        port=int(os.getenv('DB_PORT', 3306)),
+        port=int(os.getenv('DB_PORT', '3306')),
         user=os.getenv('DB_USER', 'root'),
         password=os.getenv('DB_PASSWORD', ''),
         database=os.getenv('DB_NAME', 'exam_system'),
@@ -30,7 +29,7 @@ def get_db_connection():
 def run_migrations():
     """Run all SQL migrations in order"""
     migrations_dir = Path(__file__).parent / 'migrations'
-    sql_files = sorted([f for f in migrations_dir.glob('*.sql')])
+    sql_files = sorted(list(migrations_dir.glob('*.sql')))
 
     if not sql_files:
         print("No migrations found")
