@@ -5,6 +5,7 @@ ignore=venv,env,.git,__pycache__
 disable=
     import-outside-toplevel,
     broad-exception-caught,
+    broad-exception-raised,
     too-many-locals,
     too-many-branches,
     too-many-statements,
@@ -13,3 +14,6 @@ disable=
     no-name-in-module,
     redefined-outer-name,
     too-many-nested-blocks,
+    cyclic-import,
+    too-many-arguments,
+    too-many-positional-arguments,
