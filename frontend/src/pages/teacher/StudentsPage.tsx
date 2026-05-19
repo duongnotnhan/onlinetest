@@ -30,8 +30,10 @@ interface ImportResult {
   imported: number;
   failed: number;
   errors: {
-    [x: string]: ReactNode; row: number; error: any 
-}[];
+    [x: string]: ReactNode;
+    row: number;
+    error: any;
+  }[];
 }
 
 // Danh sách các môn tự chọn (Dựa trên DB cung cấp)

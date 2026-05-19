@@ -400,8 +400,19 @@ def update_question(question_id):
             question.max_chars = data["max_chars"]
         if "shuffle_enabled" in data:
             question.shuffle_enabled = data["shuffle_enabled"]
+        if "part" in data and data["part"]:
+            question.part = data["part"]
         if "subsection_id" in data:
-            question.section_id = data["subsection_id"]
+            subsection_id = data["subsection_id"]
+            if subsection_id is not None:
+                section = QuestionSection.query.get(subsection_id)
+                if (
+                    not section
+                    or section.paper_id != question.paper_id
+                    or not section.is_visible
+                ):
+                    return jsonify({"error": "Subsection không hợp lệ"}), 400
+            question.section_id = subsection_id
 
         # Update answer (for essay/short answer)
         if "correct_answer" in data and data["correct_answer"]:

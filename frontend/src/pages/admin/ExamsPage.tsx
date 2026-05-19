@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState, memo, useRef } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  memo,
+  useRef,
+  useCallback,
+} from "react";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -93,6 +100,28 @@ interface PaperDetail extends Paper {
   questions: Question[];
   subsections?: Subsection[];
 }
+
+type DropPosition = "before" | "after";
+
+interface QuestionDropMarker {
+  partKey: string;
+  subsectionId: number | null;
+  targetQuestionId: number | null;
+  position: DropPosition;
+}
+
+type PartBlock =
+  | {
+      type: "subsection";
+      subsectionId: number;
+      questionIds: number[];
+      order: number;
+    }
+  | {
+      type: "loose";
+      questionId: number;
+      order: number;
+    };
 
 function structureForSubject(subjectName?: string, subjectCode?: string) {
   const name = (subjectName || "").toLowerCase();
@@ -267,6 +296,112 @@ function structureForSubject(subjectName?: string, subjectCode?: string) {
       shuffle: true,
     },
   ];
+}
+
+function mapPartToUi(part: string) {
+  if (part === "reading") return "part1";
+  if (part === "writing") return "part2";
+  return part;
+}
+
+function mapPartToStorage(partKey: string, subjectName?: string) {
+  const name = (subjectName || "").toLowerCase();
+  if (name.includes("ngữ văn")) {
+    if (partKey === "part1") return "reading";
+    if (partKey === "part2") return "writing";
+  }
+  return partKey;
+}
+
+const ENGLISH_PART_KEYS = new Set(["rc1", "rc2", "rf1", "rf2", "rf3", "rs"]);
+
+function normalizePartForSave(partKey: string, subjectName?: string) {
+  if (ENGLISH_PART_KEYS.has(partKey)) return partKey;
+  return mapPartToStorage(partKey, subjectName);
+}
+
+function buildChoicePayload(choiceDrafts: string[]) {
+  return ["A", "B", "C", "D"].map((label, idx) => ({
+    choice_label: label,
+    label,
+    choice_text: choiceDrafts[idx] || "",
+    text: choiceDrafts[idx] || "",
+    content: choiceDrafts[idx] || "",
+    display_order: idx + 1,
+  }));
+}
+
+function buildTrueFalsePayload(
+  trueFalseDrafts: { text: string; correct_value: string }[],
+) {
+  return ["a", "b", "c", "d"].map((label, idx) => ({
+    item_label: label,
+    label,
+    item_text: trueFalseDrafts[idx].text,
+    text: trueFalseDrafts[idx].text,
+    correct_value: trueFalseDrafts[idx].correct_value,
+    display_order: idx + 1,
+  }));
+}
+
+function buildQuestionPayload(params: {
+  questionForm: any;
+  subjectName?: string;
+  choiceDrafts: string[];
+  trueFalseDrafts: { text: string; correct_value: string }[];
+  shortAnswerCells: string[];
+}) {
+  const {
+    questionForm,
+    subjectName,
+    choiceDrafts,
+    trueFalseDrafts,
+    shortAnswerCells,
+  } = params;
+  const actualPart = normalizePartForSave(questionForm.part, subjectName);
+  const subsectionId = questionForm.subsection_id
+    ? Number(questionForm.subsection_id)
+    : null;
+
+  const payload: any = {
+    ...questionForm,
+    part: actualPart,
+    question_text: questionForm.question_text,
+    text: questionForm.question_text,
+    correct_answer: questionForm.correct_answer,
+    answer_key: questionForm.correct_answer,
+    answer_value: questionForm.correct_answer,
+    answer: questionForm.correct_answer,
+    points: Number(questionForm.points),
+    max_words: questionForm.max_words ? Number(questionForm.max_words) : null,
+    max_chars: questionForm.max_chars ? Number(questionForm.max_chars) : null,
+    subsection_id: subsectionId,
+    section_id: subsectionId,
+    informatics_track:
+      questionForm.informatics_track === ""
+        ? null
+        : questionForm.informatics_track,
+  };
+
+  if (questionForm.question_type === "multiple_choice") {
+    const mappedChoices = buildChoicePayload(choiceDrafts);
+    payload.choices = mappedChoices;
+    payload.options = mappedChoices;
+  }
+
+  if (questionForm.question_type === "true_false") {
+    payload.items = buildTrueFalsePayload(trueFalseDrafts);
+  }
+
+  if (questionForm.question_type === "short_answer") {
+    const finalAnswer = shortAnswerCells.join("").trim();
+    payload.correct_answer = finalAnswer;
+    payload.answer_key = finalAnswer;
+    payload.answer_value = finalAnswer;
+    payload.answer = finalAnswer;
+  }
+
+  return payload;
 }
 
 function generateInstructionBanner(
@@ -566,11 +701,14 @@ export default function ExamsPage() {
   });
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [draggingQuestionId, setDraggingQuestionId] = useState<number | null>(
+    null,
+  );
+  const [dropMarker, setDropMarker] = useState<QuestionDropMarker | null>(null);
+  const [isApplyingDragMove, setIsApplyingDragMove] = useState(false);
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
-  const dragChildItem = useRef<number | null>(null);
-  const dragOverChildItem = useRef<number | null>(null);
 
   const subjectsData = useMemo(() => subjects, [subjects]);
   const selectedSubject = useMemo(
@@ -592,7 +730,7 @@ export default function ExamsPage() {
     [paperDetail, paperSubject],
   );
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [se, su, sc, pa] = await Promise.all([
         adminAPI.getExamSessions(),
@@ -613,11 +751,11 @@ export default function ExamsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedSessionId]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedSessionId]);
+  }, [fetchData]);
 
   const loadPaperDetail = async (id: number) => {
     try {
@@ -648,89 +786,69 @@ export default function ExamsPage() {
     }
   };
 
+  const buildOrderedIdsByQuestionNumber = (
+    questions: Question[],
+    extraQuestionId?: number,
+  ) => {
+    const ordered = [...questions]
+      .sort((a, b) => a.question_number - b.question_number)
+      .map((q) => q.question_id);
+    if (
+      typeof extraQuestionId === "number" &&
+      !ordered.includes(extraQuestionId)
+    ) {
+      ordered.push(extraQuestionId);
+    }
+    return ordered;
+  };
+
+  const reorderPaperByCurrentNumbers = async (
+    paperId: number,
+    extraQuestionId?: number,
+  ) => {
+    const detailRes = await examAPI.getPaperDetail(paperId);
+    const orderedIds = buildOrderedIdsByQuestionNumber(
+      detailRes.data?.questions || [],
+      extraQuestionId,
+    );
+    if (orderedIds.length === 0) return;
+    await examAPI.reorderQuestions(paperId, orderedIds);
+  };
+
   const handleSaveQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paperDetail) return;
-
-    let actualPart = questionForm.part;
-    if (["rc1", "rc2", "rf1", "rf2", "rf3", "rs"].includes(actualPart)) {
-      // Giữ nguyên các định danh chuyên sâu bộ môn Tiếng Anh
-    } else if (
-      actualPart === "part1" &&
-      paperDetail.subject_name === "Ngữ Văn"
-    ) {
-      actualPart = "reading";
-    } else if (
-      actualPart === "part2" &&
-      paperDetail.subject_name === "Ngữ Văn"
-    ) {
-      actualPart = "writing";
-    }
-
-    const mappedChoices = ["A", "B", "C", "D"].map((l, i) => ({
-      choice_label: l,
-      label: l,
-      choice_text: choiceDrafts[i] || "",
-      text: choiceDrafts[i] || "",
-      content: choiceDrafts[i] || "",
-      display_order: i + 1,
-    }));
-
-    const payload: any = {
-      ...questionForm,
-      part: actualPart,
-      question_text: questionForm.question_text,
-      text: questionForm.question_text,
-      correct_answer: questionForm.correct_answer,
-      answer_key: questionForm.correct_answer,
-      answer_value: questionForm.correct_answer,
-      answer: questionForm.correct_answer,
-      points: Number(questionForm.points),
-      max_words: questionForm.max_words ? Number(questionForm.max_words) : null,
-      max_chars: questionForm.max_chars ? Number(questionForm.max_chars) : null,
-      subsection_id: questionForm.subsection_id
-        ? Number(questionForm.subsection_id)
-        : null,
-      section_id: questionForm.subsection_id
-        ? Number(questionForm.subsection_id)
-        : null,
-      informatics_track:
-        questionForm.informatics_track === ""
-          ? null
-          : questionForm.informatics_track,
-    };
-
-    if (questionForm.question_type === "multiple_choice") {
-      payload.choices = mappedChoices;
-      payload.options = mappedChoices;
-    }
-    if (questionForm.question_type === "true_false") {
-      payload.items = ["a", "b", "c", "d"].map((l, i) => ({
-        item_label: l,
-        label: l,
-        item_text: trueFalseDrafts[i].text,
-        text: trueFalseDrafts[i].text,
-        correct_value: trueFalseDrafts[i].correct_value,
-        display_order: i + 1,
-      }));
-    }
-    if (questionForm.question_type === "short_answer") {
-      const chot = shortAnswerCells.join("").trim();
-      payload.correct_answer = chot;
-      payload.answer_key = chot;
-      payload.answer_value = chot;
-      payload.answer = chot;
-    }
+    const payload = buildQuestionPayload({
+      questionForm,
+      subjectName: paperDetail.subject_name,
+      choiceDrafts,
+      trueFalseDrafts,
+      shortAnswerCells,
+    });
 
     try {
       if (isEditingQuestion && editingQuestionId) {
         await examAPI.updateQuestion(editingQuestionId, payload);
       } else {
-        await examAPI.addQuestion(paperDetail.paper_id, payload);
+        const addRes = await examAPI.addQuestion(paperDetail.paper_id, payload);
+        const addedQuestionId = Number(addRes?.data?.question_id);
+        if (Number.isFinite(addedQuestionId) && addedQuestionId > 0) {
+          try {
+            await reorderPaperByCurrentNumbers(
+              paperDetail.paper_id,
+              addedQuestionId,
+            );
+          } catch (reorderErr: any) {
+            toast.error(
+              reorderErr?.response?.data?.error ||
+                "Thêm câu hỏi xong nhưng lỗi auto-reorder",
+            );
+          }
+        }
       }
       toast.success("Lưu cấu hình câu hỏi thành công");
       setShowQuestionModal(false);
-      loadPaperDetail(paperDetail.paper_id);
+      await loadPaperDetail(paperDetail.paper_id);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Lỗi cập nhật hệ thống");
     }
@@ -775,11 +893,14 @@ export default function ExamsPage() {
         importForm.questionType,
         importFile,
       );
+      await reorderPaperByCurrentNumbers(paperDetail.paper_id);
       toast.success(`Nạp tự động thành công ${res.data.imported} câu hỏi!`);
       setShowImportModal(false);
-      loadPaperDetail(paperDetail.paper_id);
+      await loadPaperDetail(paperDetail.paper_id);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Lỗi phân tích cú pháp");
+      toast.error(
+        error.response?.data?.error || "Lỗi import hoặc tự động sắp xếp",
+      );
     } finally {
       setIsImporting(false);
     }
@@ -802,110 +923,22 @@ export default function ExamsPage() {
       return;
     const questionsList = paperDetail.questions || [];
     const subsectionsList = paperDetail.subsections || [];
-    const mappedQuestions = questionsList.map((q) => ({
-      ...q,
-      mappedPart:
-        q.part === "reading"
-          ? "part1"
-          : q.part === "writing"
-            ? "part2"
-            : q.part,
-    }));
-    const blocks: any[] = [];
-    subsectionsList
-      .filter(
-        (s) =>
-          (s.part === "reading"
-            ? "part1"
-            : s.part === "writing"
-              ? "part2"
-              : s.part) === partKey,
-      )
-      .forEach((sub) => {
-        const subQs = mappedQuestions.filter(
-          (q) => String(q.subsection_id) === String(sub.subsection_id),
-        );
-        const minQ =
-          subQs.length > 0
-            ? Math.min(...subQs.map((q) => q.question_number))
-            : 9999;
-        blocks.push({
-          type: "subsection",
-          data: sub,
-          questions: subQs,
-          order: minQ,
-        });
-      });
-    mappedQuestions
-      .filter((q) => q.mappedPart === partKey && !q.subsection_id)
-      .forEach((q) => {
-        blocks.push({
-          type: "loose",
-          data: q,
-          questions: [q],
-          order: q.question_number,
-        });
-      });
+    const blocksByPart = buildBlocksByPart(questionsList, subsectionsList);
+    const partBlocks = blocksByPart[partKey] || [];
+    if (!partBlocks[dragItem.current] || !partBlocks[dragOverItem.current]) {
+      dragItem.current = null;
+      dragOverItem.current = null;
+      return;
+    }
+    const draggedBlock = partBlocks[dragItem.current];
+    partBlocks.splice(dragItem.current, 1);
+    partBlocks.splice(dragOverItem.current, 0, draggedBlock);
+    blocksByPart[partKey] = partBlocks;
 
-    blocks.sort((a, b) => a.order - b.order);
-    const draggedBlock = blocks[dragItem.current];
-    blocks.splice(dragItem.current, 1);
-    blocks.splice(dragOverItem.current, 0, draggedBlock);
-
-    const finalOrderedQuestionIds: number[] = [];
-    paperStructure.forEach((part) => {
-      if (part.key === partKey) {
-        blocks.forEach((b) => {
-          const sortedQs = [...b.questions].sort(
-            (a, b) => a.question_number - b.question_number,
-          );
-          sortedQs.forEach((q) => finalOrderedQuestionIds.push(q.question_id));
-        });
-      } else {
-        const otherBlocks: any[] = [];
-        subsectionsList
-          .filter(
-            (s) =>
-              (s.part === "reading"
-                ? "part1"
-                : s.part === "writing"
-                  ? "part2"
-                  : s.part) === part.key,
-          )
-          .forEach((sub) => {
-            const subQs = mappedQuestions.filter(
-              (q) => String(q.subsection_id) === String(sub.subsection_id),
-            );
-            const minQ =
-              subQs.length > 0
-                ? Math.min(...subQs.map((q) => q.question_number))
-                : 9999;
-            otherBlocks.push({
-              type: "subsection",
-              data: sub,
-              questions: subQs,
-              order: minQ,
-            });
-          });
-        mappedQuestions
-          .filter((q) => q.mappedPart === part.key && !q.subsection_id)
-          .forEach((q) => {
-            otherBlocks.push({
-              type: "loose",
-              data: q,
-              questions: [q],
-              order: q.question_number,
-            });
-          });
-        otherBlocks.sort((a, b) => a.order - b.order);
-        otherBlocks.forEach((b) => {
-          const sortedQs = [...b.questions].sort(
-            (a, b) => a.question_number - b.question_number,
-          );
-          sortedQs.forEach((q) => finalOrderedQuestionIds.push(q.question_id));
-        });
-      }
-    });
+    const finalOrderedQuestionIds = buildOrderedQuestionIdsFromBlocks(
+      blocksByPart,
+      questionsList,
+    );
     dragItem.current = null;
     dragOverItem.current = null;
     try {
@@ -920,100 +953,428 @@ export default function ExamsPage() {
     }
   };
 
-  const handleSortChild = async (subsectionId: number) => {
-    if (
-      dragChildItem.current === null ||
-      dragOverChildItem.current === null ||
-      !paperDetail
-    )
-      return;
-    const questionsList = paperDetail.questions || [];
-    const subsectionsList = paperDetail.subsections || [];
-    const targetSubQs = questionsList
-      .filter((q) => String(q.subsection_id) === String(subsectionId))
-      .sort((a, b) => a.question_number - b.question_number);
-    if (targetSubQs.length < 2) return;
+  const setDropMarkerIfChanged = (nextMarker: QuestionDropMarker | null) => {
+    setDropMarker((prev) => {
+      if (!prev && !nextMarker) return prev;
+      if (!prev || !nextMarker) return nextMarker;
+      if (
+        prev.partKey === nextMarker.partKey &&
+        prev.subsectionId === nextMarker.subsectionId &&
+        prev.targetQuestionId === nextMarker.targetQuestionId &&
+        prev.position === nextMarker.position
+      ) {
+        return prev;
+      }
+      return nextMarker;
+    });
+  };
 
-    const draggedQ = targetSubQs[dragChildItem.current];
-    targetSubQs.splice(dragChildItem.current, 1);
-    targetSubQs.splice(dragOverChildItem.current, 0, draggedQ);
+  const clearQuestionDragState = () => {
+    setDraggingQuestionId(null);
+    setDropMarker(null);
+  };
 
-    const mappedQuestions = questionsList.map((q) => ({
+  const buildBlocksByPart = (
+    questions: Question[],
+    subsections: Subsection[],
+  ) => {
+    const mappedQuestions = questions.map((q) => ({
       ...q,
-      mappedPart:
-        q.part === "reading"
-          ? "part1"
-          : q.part === "writing"
-            ? "part2"
-            : q.part,
+      mappedPart: mapPartToUi(q.part),
     }));
-    const finalOrderedQuestionIds: number[] = [];
+    const blocksByPart: Record<string, PartBlock[]> = {};
+
     paperStructure.forEach((part) => {
-      const partBlocks: any[] = [];
-      subsectionsList
-        .filter(
-          (s) =>
-            (s.part === "reading"
-              ? "part1"
-              : s.part === "writing"
-                ? "part2"
-                : s.part) === part.key,
-        )
+      const blocks: PartBlock[] = [];
+      subsections
+        .filter((s) => mapPartToUi(s.part) === part.key)
         .forEach((sub) => {
-          const subQs = mappedQuestions.filter(
-            (q) => String(q.subsection_id) === String(sub.subsection_id),
-          );
+          const subQs = mappedQuestions
+            .filter(
+              (q) => String(q.subsection_id) === String(sub.subsection_id),
+            )
+            .sort((a, b) => a.question_number - b.question_number);
           const minQ =
             subQs.length > 0
               ? Math.min(...subQs.map((q) => q.question_number))
               : 9999;
-          partBlocks.push({
+          blocks.push({
             type: "subsection",
-            data: sub,
-            questions: subQs,
+            subsectionId: sub.subsection_id,
+            questionIds: subQs.map((q) => q.question_id),
             order: minQ,
           });
         });
+
       mappedQuestions
         .filter((q) => q.mappedPart === part.key && !q.subsection_id)
         .forEach((q) => {
-          partBlocks.push({
+          blocks.push({
             type: "loose",
-            data: q,
-            questions: [q],
+            questionId: q.question_id,
             order: q.question_number,
           });
         });
-      partBlocks.sort((a, b) => a.order - b.order);
-      partBlocks.forEach((b) => {
-        if (
-          b.type === "subsection" &&
-          String(b.data.subsection_id) === String(subsectionId)
-        ) {
-          targetSubQs.forEach((q) =>
-            finalOrderedQuestionIds.push(q.question_id),
-          );
-        } else {
-          const sortedQs = [...b.questions].sort(
-            (a, b) => a.question_number - b.question_number,
-          );
-          sortedQs.forEach((q) => finalOrderedQuestionIds.push(q.question_id));
+
+      blocks.sort((a, b) => a.order - b.order);
+      blocksByPart[part.key] = blocks;
+    });
+
+    return blocksByPart;
+  };
+
+  const findBlockLocationByQuestionId = (
+    blocksByPart: Record<string, PartBlock[]>,
+    questionId: number,
+  ) => {
+    for (const part of paperStructure) {
+      const partBlocks = blocksByPart[part.key] || [];
+      for (let i = 0; i < partBlocks.length; i += 1) {
+        const block = partBlocks[i];
+        if (block.type === "loose" && block.questionId === questionId) {
+          return { partKey: part.key, blockIdx: i };
         }
+        if (
+          block.type === "subsection" &&
+          Array.isArray(block.questionIds) &&
+          block.questionIds.includes(questionId)
+        ) {
+          return { partKey: part.key, blockIdx: i };
+        }
+      }
+    }
+    return null;
+  };
+
+  const detachQuestionFromBlocks = (
+    blocksByPart: Record<string, PartBlock[]>,
+    questionId: number,
+  ) => {
+    const sourceLocation = findBlockLocationByQuestionId(
+      blocksByPart,
+      questionId,
+    );
+    if (!sourceLocation) return false;
+
+    const sourceBlocks = blocksByPart[sourceLocation.partKey] || [];
+    const sourceBlock = sourceBlocks[sourceLocation.blockIdx];
+    if (!sourceBlock) return false;
+
+    if (sourceBlock.type === "loose") {
+      sourceBlocks.splice(sourceLocation.blockIdx, 1);
+    } else {
+      sourceBlock.questionIds = sourceBlock.questionIds.filter(
+        (qid) => qid !== questionId,
+      );
+    }
+    blocksByPart[sourceLocation.partKey] = sourceBlocks;
+    return true;
+  };
+
+  const insertQuestionIntoSubsection = (
+    blocksByPart: Record<string, PartBlock[]>,
+    marker: QuestionDropMarker,
+    draggedQuestionId: number,
+  ) => {
+    if (marker.subsectionId === null) return;
+
+    const destinationBlocks = blocksByPart[marker.partKey] || [];
+    let destinationIndex = destinationBlocks.findIndex(
+      (b) =>
+        b.type === "subsection" &&
+        String(b.subsectionId) === String(marker.subsectionId),
+    );
+
+    if (destinationIndex < 0) {
+      destinationBlocks.push({
+        type: "subsection",
+        subsectionId: marker.subsectionId,
+        questionIds: [],
+        order: 9999,
+      });
+      destinationIndex = destinationBlocks.length - 1;
+    }
+
+    const destinationBlock = destinationBlocks[destinationIndex];
+    if (!destinationBlock || destinationBlock.type !== "subsection") return;
+
+    const destinationIds = [...destinationBlock.questionIds];
+    if (
+      marker.targetQuestionId &&
+      destinationIds.includes(marker.targetQuestionId)
+    ) {
+      const targetIndex = destinationIds.indexOf(marker.targetQuestionId);
+      const insertIndex =
+        marker.position === "before" ? targetIndex : targetIndex + 1;
+      destinationIds.splice(insertIndex, 0, draggedQuestionId);
+    } else {
+      destinationIds.push(draggedQuestionId);
+    }
+
+    destinationBlock.questionIds = destinationIds;
+    blocksByPart[marker.partKey] = destinationBlocks;
+  };
+
+  const insertQuestionAsLoose = (
+    blocksByPart: Record<string, PartBlock[]>,
+    marker: QuestionDropMarker,
+    draggedQuestionId: number,
+  ) => {
+    const destinationBlocks = blocksByPart[marker.partKey] || [];
+    let insertBlockIndex = -1;
+
+    if (marker.targetQuestionId) {
+      const targetLocation = findBlockLocationByQuestionId(
+        blocksByPart,
+        marker.targetQuestionId,
+      );
+      if (targetLocation && targetLocation.partKey === marker.partKey) {
+        insertBlockIndex =
+          marker.position === "before"
+            ? targetLocation.blockIdx
+            : targetLocation.blockIdx + 1;
+      }
+    }
+
+    if (insertBlockIndex < 0) insertBlockIndex = destinationBlocks.length;
+    destinationBlocks.splice(insertBlockIndex, 0, {
+      type: "loose",
+      questionId: draggedQuestionId,
+      order: 9999,
+    });
+    blocksByPart[marker.partKey] = destinationBlocks;
+  };
+
+  const moveQuestionInBlocks = (
+    blocksByPart: Record<string, PartBlock[]>,
+    marker: QuestionDropMarker,
+    draggedQuestionId: number,
+  ) => {
+    const detached = detachQuestionFromBlocks(blocksByPart, draggedQuestionId);
+    if (!detached) return false;
+
+    if (marker.subsectionId !== null) {
+      insertQuestionIntoSubsection(blocksByPart, marker, draggedQuestionId);
+    } else {
+      insertQuestionAsLoose(blocksByPart, marker, draggedQuestionId);
+    }
+
+    return true;
+  };
+
+  const buildOrderedQuestionIdsFromBlocks = (
+    blocksByPart: Record<string, PartBlock[]>,
+    questionsList: Question[],
+  ) => {
+    const orderedIds: number[] = [];
+    const seen = new Set<number>();
+
+    paperStructure.forEach((part) => {
+      const partBlocks = blocksByPart[part.key] || [];
+      partBlocks.forEach((block) => {
+        if (block.type === "loose") {
+          if (!seen.has(block.questionId)) {
+            orderedIds.push(block.questionId);
+            seen.add(block.questionId);
+          }
+          return;
+        }
+
+        block.questionIds.forEach((qid) => {
+          if (!seen.has(qid)) {
+            orderedIds.push(qid);
+            seen.add(qid);
+          }
+        });
       });
     });
-    dragChildItem.current = null;
-    dragOverChildItem.current = null;
+
+    questionsList.forEach((q) => {
+      if (!seen.has(q.question_id)) {
+        orderedIds.push(q.question_id);
+        seen.add(q.question_id);
+      }
+    });
+
+    return orderedIds;
+  };
+
+  const applyQuestionDrop = async (
+    marker: QuestionDropMarker | null,
+    draggedQuestionId: number | null,
+  ) => {
+    if (!paperDetail || !marker || draggedQuestionId === null) {
+      clearQuestionDragState();
+      return;
+    }
+    if (marker.targetQuestionId === draggedQuestionId) {
+      clearQuestionDragState();
+      return;
+    }
+
+    const questionsList = paperDetail.questions || [];
+    const subsectionsList = paperDetail.subsections || [];
+    const draggedQuestion = questionsList.find(
+      (q) => q.question_id === draggedQuestionId,
+    );
+    if (!draggedQuestion) {
+      clearQuestionDragState();
+      return;
+    }
+
+    const blocksByPart = buildBlocksByPart(questionsList, subsectionsList);
+    const moved = moveQuestionInBlocks(blocksByPart, marker, draggedQuestionId);
+    if (!moved) {
+      clearQuestionDragState();
+      return;
+    }
+
+    const finalOrderedQuestionIds = buildOrderedQuestionIdsFromBlocks(
+      blocksByPart,
+      questionsList,
+    );
+
+    const targetStoredPart = mapPartToStorage(
+      marker.partKey,
+      paperDetail.subject_name,
+    );
+    const currentSubsectionId = draggedQuestion.subsection_id || null;
+    const shouldUpdatePlacement =
+      draggedQuestion.part !== targetStoredPart ||
+      currentSubsectionId !== marker.subsectionId;
+
+    setIsApplyingDragMove(true);
     try {
+      if (shouldUpdatePlacement) {
+        await examAPI.updateQuestion(draggedQuestionId, {
+          part: targetStoredPart,
+          subsection_id: marker.subsectionId,
+          section_id: marker.subsectionId,
+        });
+      }
       await examAPI.reorderQuestions(
         paperDetail.paper_id,
         finalOrderedQuestionIds,
       );
-      toast.success("Đã cập nhật lại trật tự câu hỏi trong đoạn");
-      loadPaperDetail(paperDetail.paper_id);
-    } catch (e) {
-      toast.error("Lỗi đồng bộ thứ tự con: " + (e as Error).message);
+      toast.success("Đã cập nhật vị trí câu hỏi");
+      await loadPaperDetail(paperDetail.paper_id);
+    } catch (e: any) {
+      toast.error(
+        e?.response?.data?.error || "Lỗi cập nhật kéo thả: " + e.message,
+      );
+    } finally {
+      setIsApplyingDragMove(false);
+      clearQuestionDragState();
     }
   };
+
+  const handleQuestionDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    questionId: number,
+  ) => {
+    if (isApplyingDragMove) return;
+    setDraggingQuestionId(questionId);
+    setDropMarker(null);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(questionId));
+  };
+
+  const handleQuestionDragOverTarget = (
+    e: React.DragEvent<HTMLDivElement>,
+    partKey: string,
+    subsectionId: number | null,
+    targetQuestionId: number,
+  ) => {
+    if (
+      draggingQuestionId === null ||
+      draggingQuestionId === targetQuestionId ||
+      isApplyingDragMove
+    )
+      return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position: DropPosition =
+      e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setDropMarkerIfChanged({
+      partKey,
+      subsectionId,
+      targetQuestionId,
+      position,
+    });
+  };
+
+  const handleQuestionDropOnTarget = (
+    e: React.DragEvent<HTMLDivElement>,
+    partKey: string,
+    subsectionId: number | null,
+    targetQuestionId: number,
+  ) => {
+    if (draggingQuestionId === null || isApplyingDragMove) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position: DropPosition =
+      e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    void applyQuestionDrop(
+      {
+        partKey,
+        subsectionId,
+        targetQuestionId,
+        position,
+      },
+      draggingQuestionId,
+    );
+  };
+
+  const handleQuestionDropToContainer = (
+    e: React.DragEvent<HTMLDivElement>,
+    partKey: string,
+    subsectionId: number | null,
+  ) => {
+    if (draggingQuestionId === null || isApplyingDragMove) return;
+    e.preventDefault();
+    e.stopPropagation();
+    void applyQuestionDrop(
+      {
+        partKey,
+        subsectionId,
+        targetQuestionId: null,
+        position: "after",
+      },
+      draggingQuestionId,
+    );
+  };
+
+  const handleQuestionDragOverContainer = (
+    e: React.DragEvent<HTMLDivElement>,
+    partKey: string,
+    subsectionId: number | null,
+  ) => {
+    if (draggingQuestionId === null || isApplyingDragMove) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDropMarkerIfChanged({
+      partKey,
+      subsectionId,
+      targetQuestionId: null,
+      position: "after",
+    });
+  };
+
+  const isDropMarkerActive = (
+    partKey: string,
+    subsectionId: number | null,
+    targetQuestionId: number | null,
+    position: DropPosition,
+  ) =>
+    !!(
+      dropMarker &&
+      dropMarker.partKey === partKey &&
+      dropMarker.subsectionId === subsectionId &&
+      dropMarker.targetQuestionId === targetQuestionId &&
+      dropMarker.position === position
+    );
 
   const openAddQuestionModal = (partKey: string, subsectionId: string = "") => {
     const partObj = paperStructure.find((p) => p.key === partKey);
@@ -1328,6 +1689,69 @@ export default function ExamsPage() {
       )}
     </div>
   );
+
+  const renderDropIndicator = (active: boolean) =>
+    active ? (
+      <div className="h-1 rounded-full bg-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.2)] my-2" />
+    ) : null;
+
+  const renderDraggableQuestionRow = (
+    q: any,
+    partKey: string,
+    subsectionId: number | null,
+    mode: "loose" | "subsection",
+  ) => {
+    const isLoose = mode === "loose";
+    return (
+      <>
+        {renderDropIndicator(
+          isDropMarkerActive(partKey, subsectionId, q.question_id, "before"),
+        )}
+        <div
+          draggable={!isApplyingDragMove}
+          onDragStart={(e) => handleQuestionDragStart(e, q.question_id)}
+          onDragOver={(e) =>
+            handleQuestionDragOverTarget(
+              e,
+              partKey,
+              subsectionId,
+              q.question_id,
+            )
+          }
+          onDrop={(e) =>
+            handleQuestionDropOnTarget(e, partKey, subsectionId, q.question_id)
+          }
+          onDragEnd={() => {
+            if (!isApplyingDragMove) clearQuestionDragState();
+          }}
+          className={
+            isLoose
+              ? "content-box hover:border-blue-200 flex items-stretch gap-3 group p-4 shadow-sm"
+              : "flex items-stretch gap-2.5 group/child"
+          }
+        >
+          <div
+            className={
+              isLoose
+                ? "flex items-center justify-center cursor-move text-slate-300 group-hover:text-blue-600 px-1 transition-colors"
+                : "flex items-center justify-center cursor-move text-indigo-300 hover:text-indigo-700 px-1 transition-colors"
+            }
+            title={
+              isLoose
+                ? "Kéo thả câu hỏi trong phần hoặc sang vùng khác"
+                : "Kéo thả câu con sang vùng khác"
+            }
+          >
+            <FiMenu size={isLoose ? 20 : 18} />
+          </div>
+          <div className="flex-1">{renderQuestionBlock(q, true)}</div>
+        </div>
+        {renderDropIndicator(
+          isDropMarkerActive(partKey, subsectionId, q.question_id, "after"),
+        )}
+      </>
+    );
+  };
 
   if (loading)
     return (
@@ -1727,203 +2151,176 @@ export default function ExamsPage() {
 
                 <div className="p-5 bg-white space-y-5">
                   {blocks.map((block, index) => {
+                    if (block.type !== "subsection") {
+                      return (
+                        <div key={`q-${block.data.question_id}`}>
+                          {renderDraggableQuestionRow(
+                            block.data,
+                            part.key,
+                            null,
+                            "loose",
+                          )}
+                        </div>
+                      );
+                    }
+
                     return (
                       <div
-                        key={
-                          block.type === "subsection"
-                            ? `sub-${block.data.subsection_id}`
-                            : `q-${block.data.question_id}`
-                        }
-                        draggable={block.type !== "subsection"}
-                        onDragStart={(e) => {
-                          if (block.type !== "subsection") {
-                            dragItem.current = index;
-                            e.dataTransfer.effectAllowed = "move";
-                          }
-                        }}
-                        onDragEnter={(e) => {
-                          if (block.type !== "subsection") {
-                            dragOverItem.current = index;
-                            e.preventDefault();
-                          }
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                        }}
-                        onDragEnd={() =>
-                          block.type !== "subsection"
-                            ? handleSort(part.key)
-                            : null
-                        }
+                        key={`sub-${block.data.subsection_id}`}
                         className="content-box hover:border-blue-200 flex items-stretch gap-3 group p-4 shadow-sm"
                       >
-                        {block.type !== "subsection" && (
-                          <div
-                            className="flex items-center justify-center cursor-move text-slate-300 group-hover:text-blue-600 px-1 transition-colors"
-                            title="Kéo thả hoán vị"
-                          >
-                            <FiMenu size={20} />
-                          </div>
-                        )}
-
                         <div className="flex-1 overflow-hidden pointer-events-auto">
-                          {block.type === "subsection" ? (
-                            <div className="content-box bg-indigo-50/20 border-indigo-200 shadow-sm p-5 space-y-4">
-                              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-indigo-200 pb-3 gap-3">
-                                <div className="flex items-center gap-2.5">
-                                  <div
-                                    draggable
-                                    onDragStart={(e) => {
-                                      dragItem.current = index;
-                                      e.dataTransfer.effectAllowed = "move";
-                                    }}
-                                    onDragEnter={(e) => {
-                                      dragOverItem.current = index;
-                                      e.preventDefault();
-                                    }}
-                                    onDragEnd={() => handleSort(part.key)}
-                                    className="cursor-move text-indigo-400 hover:text-indigo-900 p-1"
-                                    title="Kéo thả nguyên cụm đoạn trích"
-                                  >
-                                    <FiMenu size={20} />
-                                  </div>
-                                  <span className="bg-indigo-100 text-indigo-900 text-xs font-black px-2 py-0.5 rounded uppercase tracking-wider">
-                                    Passage Box
-                                  </span>
-                                  <h3 className="text-base font-bold text-indigo-950">
-                                    {block.data.title ||
-                                      "Đoạn văn đọc hiểu chung"}
-                                  </h3>
+                          <div className="content-box bg-indigo-50/20 border-indigo-200 shadow-sm p-5 space-y-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-indigo-200 pb-3 gap-3">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  draggable
+                                  onDragStart={(e) => {
+                                    dragItem.current = index;
+                                    e.dataTransfer.effectAllowed = "move";
+                                  }}
+                                  onDragEnter={(e) => {
+                                    dragOverItem.current = index;
+                                    e.preventDefault();
+                                  }}
+                                  onDragEnd={() => handleSort(part.key)}
+                                  className="cursor-move text-indigo-400 hover:text-indigo-900 p-1"
+                                  title="Kéo thả nguyên cụm đoạn trích"
+                                >
+                                  <FiMenu size={20} />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() =>
-                                      openAddQuestionModal(
-                                        part.key,
-                                        String(block.data.subsection_id),
-                                      )
-                                    }
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
-                                  >
-                                    <FiPlus size={14} /> Thêm câu con
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setSubsectionForm({
-                                        title: block.data.title || "",
-                                        content: block.data.content || "",
-                                        type: block.data.type,
-                                        shuffle_questions:
-                                          block.data.shuffle_questions,
-                                        shuffle_choices:
-                                          block.data.shuffle_choices,
-                                        shuffle_items: block.data.shuffle_items,
-                                        part: block.data.part,
-                                      });
-                                      setIsEditingSubsection(true);
-                                      setEditingSubsectionId(
-                                        block.data.subsection_id,
-                                      );
-                                      setShowSubsectionModal(true);
-                                    }}
-                                    className="bg-white text-indigo-800 hover:bg-indigo-100 p-2 rounded-lg border border-indigo-200 transition-colors shadow-sm"
-                                    title="Sửa nội dung"
-                                  >
-                                    <FiEdit size={15} />
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      deleteSubsection(block.data.subsection_id)
-                                    }
-                                    className="bg-white text-red-600 hover:bg-red-50 p-2 rounded-lg border border-indigo-200 transition-colors shadow-sm"
-                                    title="Xóa cụm"
-                                  >
-                                    <FiTrash2 size={15} />
-                                  </button>
-                                </div>
+                                <span className="bg-indigo-100 text-indigo-900 text-xs font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                                  Passage Box
+                                </span>
+                                <h3 className="text-base font-bold text-indigo-950">
+                                  {block.data.title ||
+                                    "Đoạn văn đọc hiểu chung"}
+                                </h3>
                               </div>
-
-                              {generateInstructionBanner(
-                                paperDetail.subject_name,
-                                block.questions,
-                                block.data.type,
-                              ) && (
-                                <p className="text-xs text-indigo-950 font-bold italic bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
-                                  <span className="underline">
-                                    Chỉ dẫn hệ thống:
-                                  </span>{" "}
-                                  "
-                                  {generateInstructionBanner(
-                                    paperDetail.subject_name,
-                                    block.questions,
-                                    block.data.type,
-                                  )}
-                                  "
-                                </p>
-                              )}
-
-                              {block.data.content && (
-                                <div className="content-box p-4 max-h-72 overflow-y-auto shadow-sm border-slate-200">
-                                  <MarkdownContent
-                                    content={block.data.content}
-                                  />
-                                </div>
-                              )}
-
-                              <div className="space-y-4 pl-3 md:pl-5 border-l-4 border-indigo-300 pt-2">
-                                {block.questions
-                                  .sort(
-                                    (a: any, b: any) =>
-                                      a.question_number - b.question_number,
-                                  )
-                                  .map((q: any, cIdx: number) => (
-                                    <div
-                                      key={`sub-q-${q.question_id}`}
-                                      draggable
-                                      onDragStart={(e) => {
-                                        dragChildItem.current = cIdx;
-                                        e.dataTransfer.effectAllowed = "move";
-                                        e.stopPropagation();
-                                      }}
-                                      onDragEnter={(e) => {
-                                        dragOverChildItem.current = cIdx;
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                      }}
-                                      onDragOver={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                      }}
-                                      onDragEnd={(e) => {
-                                        e.stopPropagation();
-                                        handleSortChild(
-                                          block.data.subsection_id,
-                                        );
-                                      }}
-                                      className="flex items-stretch gap-2.5 group/child"
-                                    >
-                                      <div
-                                        className="flex items-center justify-center cursor-move text-indigo-300 hover:text-indigo-700 px-1 transition-colors"
-                                        title="Kéo thả sắp xếp câu con"
-                                      >
-                                        <FiMenu size={18} />
-                                      </div>
-                                      <div className="flex-1">
-                                        {renderQuestionBlock(q, true)}
-                                      </div>
-                                    </div>
-                                  ))}
-                                {block.questions.length === 0 && (
-                                  <p className="text-xs text-indigo-500 font-bold italic">
-                                    Vùng ngữ liệu rỗng. Bấm "Thêm câu con" ở
-                                    trên.
-                                  </p>
-                                )}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    openAddQuestionModal(
+                                      part.key,
+                                      String(block.data.subsection_id),
+                                    )
+                                  }
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+                                >
+                                  <FiPlus size={14} /> Thêm câu con
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSubsectionForm({
+                                      title: block.data.title || "",
+                                      content: block.data.content || "",
+                                      type: block.data.type,
+                                      shuffle_questions:
+                                        block.data.shuffle_questions,
+                                      shuffle_choices:
+                                        block.data.shuffle_choices,
+                                      shuffle_items: block.data.shuffle_items,
+                                      part: block.data.part,
+                                    });
+                                    setIsEditingSubsection(true);
+                                    setEditingSubsectionId(
+                                      block.data.subsection_id,
+                                    );
+                                    setShowSubsectionModal(true);
+                                  }}
+                                  className="bg-white text-indigo-800 hover:bg-indigo-100 p-2 rounded-lg border border-indigo-200 transition-colors shadow-sm"
+                                  title="Sửa nội dung"
+                                >
+                                  <FiEdit size={15} />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    deleteSubsection(block.data.subsection_id)
+                                  }
+                                  className="bg-white text-red-600 hover:bg-red-50 p-2 rounded-lg border border-indigo-200 transition-colors shadow-sm"
+                                  title="Xóa cụm"
+                                >
+                                  <FiTrash2 size={15} />
+                                </button>
                               </div>
                             </div>
-                          ) : (
-                            renderQuestionBlock(block.data, true)
-                          )}
+
+                            {generateInstructionBanner(
+                              paperDetail.subject_name,
+                              block.questions,
+                              block.data.type,
+                            ) && (
+                              <p className="text-xs text-indigo-950 font-bold italic bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                                <span className="underline">
+                                  Chỉ dẫn hệ thống:
+                                </span>{" "}
+                                "
+                                {generateInstructionBanner(
+                                  paperDetail.subject_name,
+                                  block.questions,
+                                  block.data.type,
+                                )}
+                                "
+                              </p>
+                            )}
+
+                            {block.data.content && (
+                              <div className="content-box p-4 max-h-72 overflow-y-auto shadow-sm border-slate-200">
+                                <MarkdownContent content={block.data.content} />
+                              </div>
+                            )}
+
+                            <div className="space-y-4 pl-3 md:pl-5 border-l-4 border-indigo-300 pt-2">
+                              {block.questions
+                                .sort(
+                                  (a: any, b: any) =>
+                                    a.question_number - b.question_number,
+                                )
+                                .map((q: any) => (
+                                  <div key={`sub-q-${q.question_id}`}>
+                                    {renderDraggableQuestionRow(
+                                      q,
+                                      part.key,
+                                      block.data.subsection_id,
+                                      "subsection",
+                                    )}
+                                  </div>
+                                ))}
+                              {block.questions.length === 0 && (
+                                <p className="text-xs text-indigo-500 font-bold italic">
+                                  Vùng ngữ liệu rỗng. Bấm "Thêm câu con" ở trên.
+                                </p>
+                              )}
+                            </div>
+
+                            <div
+                              onDragOver={(e) =>
+                                handleQuestionDragOverContainer(
+                                  e,
+                                  part.key,
+                                  block.data.subsection_id,
+                                )
+                              }
+                              onDrop={(e) =>
+                                handleQuestionDropToContainer(
+                                  e,
+                                  part.key,
+                                  block.data.subsection_id,
+                                )
+                              }
+                              className={`rounded-lg border-2 border-dashed px-4 py-2 text-xs font-bold transition-all ${isDropMarkerActive(part.key, block.data.subsection_id, null, "after") ? "border-blue-500 bg-blue-50 text-blue-700" : "border-indigo-200 text-indigo-500 bg-white"}`}
+                            >
+                              {renderDropIndicator(
+                                isDropMarkerActive(
+                                  part.key,
+                                  block.data.subsection_id,
+                                  null,
+                                  "after",
+                                ),
+                              )}
+                              Thả tại đây để thêm câu vào cuối Passage Box.
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
@@ -1933,6 +2330,21 @@ export default function ExamsPage() {
                       Chưa có câu hỏi trực thuộc vùng thi này.
                     </p>
                   )}
+                  <div
+                    onDragOver={(e) =>
+                      handleQuestionDragOverContainer(e, part.key, null)
+                    }
+                    onDrop={(e) =>
+                      handleQuestionDropToContainer(e, part.key, null)
+                    }
+                    className={`rounded-lg border-2 border-dashed px-4 py-3 text-xs font-bold transition-all ${isDropMarkerActive(part.key, null, null, "after") ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-500 bg-slate-50/60"}`}
+                  >
+                    {renderDropIndicator(
+                      isDropMarkerActive(part.key, null, null, "after"),
+                    )}
+                    Thả tại đây để đưa câu hỏi ra ngoài subsection (câu lẻ trong
+                    phần này).
+                  </div>
                 </div>
               </div>
             );
@@ -2312,9 +2724,7 @@ export default function ExamsPage() {
                         })
                       }
                     >
-                      <option value="">
-                        --- Độc lập ---
-                      </option>
+                      <option value="">--- Độc lập ---</option>
                       {subsectionsList
                         .filter(
                           (s) =>
