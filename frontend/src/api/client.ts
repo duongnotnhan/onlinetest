@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import { useAuthStore } from "@/store/authStore";
 
-const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
+const configuredApiUrl = ((import.meta as any).env?.VITE_API_URL as string) || "/api";
 const API_BASE_URL = configuredApiUrl.endsWith("/api")
   ? configuredApiUrl
   : `${configuredApiUrl.replace(/\/$/, "")}/api`;

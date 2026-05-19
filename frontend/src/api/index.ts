@@ -91,8 +91,8 @@ export const adminAPI = {
     return axiosInstance.get("/admin/locations/provinces");
   },
 
-  getWards: async (provinceId?: number) => {
-    return axiosInstance.get("/admin/locations/wards", {
+  getDistricts: async (provinceId?: number) => {
+    return axiosInstance.get("/admin/locations/districts", {
       params: provinceId ? { province_id: provinceId } : undefined,
     });
   },
@@ -267,10 +267,16 @@ export const teacherAPI = {
   },
 
   resetBulkPasswords: async (studentIds: number[]) => {
-    handleBlobDownload(await axiosInstance.post('/teacher/students/reset-bulk-passwords', { student_ids: studentIds }, {
-      responseType: 'blob',
-    }), `Mat_Khau_Moi_Hoc_Sinh.xlsx`);
-    
+    handleBlobDownload(
+      await axiosInstance.post(
+        "/teacher/students/reset-bulk-passwords",
+        { student_ids: studentIds },
+        {
+          responseType: "blob",
+        },
+      ),
+      `Mat_Khau_Moi_Hoc_Sinh.xlsx`,
+    );
   },
 
   // Exam Management (for exams created by teacher)
@@ -322,6 +328,10 @@ export const teacherAPI = {
     });
   },
 
+  getExamSessions: async () => {
+    return axiosInstance.get("/teacher/exam-sessions");
+  },
+
   getSchoolResults: async (schoolId: number) => {
     return axiosInstance.get(`/teacher/school-results/${schoolId}`);
   },
@@ -349,7 +359,7 @@ export const studentAPI = {
     attemptId: number,
     questionId: number,
     answer: any,
-    track?: string,
+    track?: string | null,
   ) => {
     const payload: any = {
       question_id: questionId,
@@ -411,7 +421,7 @@ export const gradingAPI = {
 };
 
 const handleBlobDownload = (response: any, defaultFilename: string) => {
-  const blob = new Blob([response.data]);
+  const blob = response.data;
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -463,11 +473,11 @@ export const exportAPI = {
 
   exportSchoolResults: async (
     exportType: "csv" | "xlsx",
-    filters: { exam_session_id: number },
+    filters: { exam_session_id?: number },
   ) => {
     const response = await axiosInstance.post(
       `/export/data/school_results/${exportType}`,
-      filters,
+      filters ?? {},
       {
         responseType: "blob",
       },

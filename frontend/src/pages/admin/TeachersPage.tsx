@@ -161,6 +161,7 @@ export default function TeachersManagementPage() {
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
           <select
+            title="chooseSchool"
             className="input-field"
             value={form.school_id}
             onChange={(e) => setForm({ ...form, school_id: e.target.value })}
@@ -174,6 +175,7 @@ export default function TeachersManagementPage() {
             ))}
           </select>
           <select
+            title="chooseTeacherRole"
             className="input-field"
             value={form.subject_specialty}
             onChange={(e) =>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { studentAPI } from "@/api";
 import toast from "react-hot-toast";
@@ -35,7 +35,8 @@ export default function StudentDashboard() {
     } catch (error: any) {
       toast.error(
         error.response?.data?.error ||
-          "Chưa đến giờ mở đề hoặc tài khoản không hợp lệ: " + (error as Error).message,
+          "Chưa đến giờ mở đề hoặc tài khoản không hợp lệ: " +
+            (error as Error).message,
       );
     }
   };

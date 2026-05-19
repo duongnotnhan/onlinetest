@@ -6,7 +6,7 @@ import io
 from flask import jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from app import db
 from app.models import ExamAttempt, ExamSession, School, Student, Subject, User
@@ -194,8 +194,8 @@ def export_system_data(entity_type, export_type):
                             School) .outerjoin(
                             School,
                             Student.school_id == School.school_id) .order_by(
-                            Student.province_id,
-                            Student.ward_id,
+                            School.province_id,
+                            School.district_id,
                             School.school_name,
                             Student.class_name,
                             Student.full_name,
@@ -214,11 +214,11 @@ def export_system_data(entity_type, export_type):
 
                 for stu, sch in students:
                     prov_id = getattr(
-                        stu, "province_id", getattr(sch, "province_id", "")
+                        sch, "province_id", getattr(sch, "province_id", "")
                     )
-                    ward_id = getattr(
-                        stu, "ward_id", getattr(
-                            sch, "ward_id", ""))
+                    disctrict_id = getattr(
+                        sch, "disctrict_id", getattr(
+                            sch, "disctrict_id", ""))
                     prov_name = (
                         getattr(stu.province, "name", prov_id)
                         if hasattr(stu, "province")
@@ -236,7 +236,7 @@ def export_system_data(entity_type, export_type):
                             "district") else "")
 
                     data_rows.append([prov_id,
-                                      ward_id,
+                                      disctrict_id,
                                       prov_name,
                                       dist_name,
                                       sch.school_name if sch else "Chưa gán trường",
@@ -402,9 +402,18 @@ def export_system_data(entity_type, export_type):
                 "exam_session_id"
             )
             if session_id:
+                session = (
+                    db.session.query(ExamSession)
+                    .filter(ExamSession.exam_session_id == int(session_id))
+                    .first()
+                )
                 query = query.filter(
-                    ExamAttempt.exam_session_id == int(session_id))
-                filename += f"_KyThi_{session_id}"
+                    ExamAttempt.exam_session_id == int(session_id)
+                )
+                if session and session.session_name:
+                    filename += f"_KyThi_{session.session_name}"
+                else:
+                    filename += f"_KyThi_{session_id}"
 
             results = query.order_by(
                 Student.class_name, Student.full_name).all()
@@ -449,64 +458,157 @@ def export_system_data(entity_type, export_type):
             )
 
         if export_type == "xlsx":
+
             wb = Workbook()
             ws = wb.active
             ws.title = "Dữ Liệu Hệ Thống"
-            ws.views.sheetView[0].showGridLines = True
 
-            font_header = Font(
+            # =====================================================
+            # STYLE
+            # =====================================================
+            header_font = Font(
                 name="Arial",
                 size=11,
                 bold=True,
-                color="FFFFFF")
-            fill_header = PatternFill(
-                start_color="1E3A8A", end_color="1E3A8A", fill_type="solid"
-            )  # Xanh biển
-            font_body = Font(name="Arial", size=11)
-            thin_border = Border(
-                left=Side(style="thin", color="E2E8F0"),
-                right=Side(style="thin", color="E2E8F0"),
-                top=Side(style="thin", color="E2E8F0"),
-                bottom=Side(style="thin", color="E2E8F0"),
+                color="FFFFFF"
             )
 
-            ws.append(headers)
-            for col_idx in range(1, len(headers) + 1):
-                cell = ws.cell(row=1, column=col_idx)
-                cell.font = font_header
-                cell.fill = fill_header
-                cell.alignment = Alignment(
-                    horizontal="center", vertical="center")
-                cell.border = thin_border
+            body_font = Font(
+                name="Arial",
+                size=11
+            )
 
-            for r_data in data_rows:
-                ws.append(r_data)
-                curr_row = ws.max_row
-                for col_idx in range(1, len(r_data) + 1):
-                    cell = ws.cell(row=curr_row, column=col_idx)
-                    cell.font = font_body
-                    cell.border = thin_border
-                    if isinstance(r_data[col_idx - 1], (int, float)):
-                        cell.alignment = Alignment(horizontal="right")
+            header_fill = PatternFill(
+                fill_type="solid",
+                fgColor="1E3A8A"
+            )
+
+            thin = Side(
+                border_style="thin",
+                color="E2E8F0"
+            )
+
+            border = Border(
+                left=thin,
+                right=thin,
+                top=thin,
+                bottom=thin
+            )
+
+            # =====================================================
+            # HEADER
+            # =====================================================
+            for col_idx, header in enumerate(headers, start=1):
+
+                cell = ws.cell(
+                    row=1,
+                    column=col_idx,
+                    value=str(header)
+                )
+
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = border
+
+                cell.alignment = Alignment(
+                    horizontal="center",
+                    vertical="center"
+                )
+
+            # =====================================================
+            # DATA
+            # =====================================================
+            for row_idx, row_data in enumerate(data_rows, start=2):
+
+                for col_idx, value in enumerate(row_data, start=1):
+
+                    # Convert sạch dữ liệu
+                    if value is None:
+                        safe_value = ""
+
+                    elif isinstance(value, (int, float, bool)):
+                        safe_value = value
+
+                    else:
+                        safe_value = str(value)
+
+                        # Loại bỏ ký tự phá XML Excel
+                        safe_value = (
+                            safe_value
+                            .replace("\x00", "")
+                            .replace("\x01", "")
+                            .replace("\x02", "")
+                            .replace("\x03", "")
+                            .replace("\x04", "")
+                            .replace("\x05", "")
+                            .replace("\x06", "")
+                            .replace("\x07", "")
+                            .replace("\x08", "")
+                            .replace("\x0B", "")
+                            .replace("\x0C", "")
+                            .replace("\x0E", "")
+                            .replace("\x0F", "")
+                        )
+
+                    cell = ws.cell(
+                        row=row_idx,
+                        column=col_idx,
+                        value=safe_value
+                    )
+
+                    cell.font = body_font
+                    cell.border = border
+
+                    # Căn lề
+                    if isinstance(safe_value, (int, float)):
+                        cell.alignment = Alignment(
+                            horizontal="right",
+                            vertical="center"
+                        )
                     else:
                         cell.alignment = Alignment(
-                            horizontal="left", wrap_text=True)
+                            horizontal="left",
+                            vertical="center",
+                            wrap_text=True
+                        )
 
-            for col in ws.columns:
-                max_len = max((len(str(cell.value))
-                               for cell in col if cell.value), default=0)
-                ws.column_dimensions[col[0].column_letter].width = max(
-                    max_len + 2, 12)
+            # =====================================================
+            # AUTO WIDTH
+            # =====================================================
+            for column_cells in ws.columns:
 
-            file_stream = io.BytesIO()
-            wb.save(file_stream)
-            file_stream.seek(0)
+                length = 0
+                column = column_cells[0].column_letter
+
+                for cell in column_cells:
+
+                    try:
+                        length = max(
+                            length,
+                            len(str(cell.value))
+                        )
+                    except Exception:
+                        pass
+
+                ws.column_dimensions[column].width = min(
+                    max(length + 4, 12),
+                    60
+                )
+
+            # =====================================================
+            # EXPORT
+            # =====================================================
+            output = io.BytesIO()
+
+            wb.save(output)
+
+            output.seek(0)
 
             return send_file(
-                file_stream,
+                output,
                 mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 as_attachment=True,
-                download_name=f"{filename}.xlsx",
+                download_name=f"{filename}.xlsx"
             )
 
         return jsonify({"error": "Định dạng file không được hỗ trợ"}), 400

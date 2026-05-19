@@ -20,7 +20,7 @@ interface Province {
   province_code?: string;
 }
 
-interface Ward {
+interface District {
   district_id: number;
   district_name: string;
   province_id: number;
@@ -29,7 +29,7 @@ interface Ward {
 export default function SchoolsPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     province_id: "",
@@ -62,14 +62,14 @@ export default function SchoolsPage() {
     }
   };
 
-  const fetchWards = async (provinceId?: number) => {
+  const fetchDistricts = async (provinceId?: number) => {
     if (!provinceId) {
-      setWards([]);
+      setDistricts([]);
       return;
     }
     try {
-      const response = await adminAPI.getWards(provinceId);
-      setWards(response.data.data || []);
+      const response = await adminAPI.getDistricts(provinceId);
+      setDistricts(response.data.data || []);
     } catch (error: any) {
       toast.error(
         error.response?.data?.error || "Không thể tải danh sách xã/phường",
@@ -82,7 +82,7 @@ export default function SchoolsPage() {
   }, []);
 
   useEffect(() => {
-    fetchWards(selectedProvinceId);
+    fetchDistricts(selectedProvinceId);
   }, [selectedProvinceId]);
 
   const createSchool = async (event: React.FormEvent) => {
@@ -126,6 +126,7 @@ export default function SchoolsPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
+            title="Tỉnh/Thành"
             className="input-field"
             value={form.province_id}
             onChange={(e) =>
@@ -143,6 +144,7 @@ export default function SchoolsPage() {
             ))}
           </select>
           <select
+            title="Phường/Xã"
             className="input-field"
             value={form.district_id}
             onChange={(e) => setForm({ ...form, district_id: e.target.value })}
@@ -150,9 +152,9 @@ export default function SchoolsPage() {
             required
           >
             <option value="">Chọn xã/phường</option>
-            {wards.map((ward) => (
-              <option key={ward.district_id} value={ward.district_id}>
-                {ward.district_name}
+            {districts.map((district) => (
+              <option key={district.district_id} value={district.district_id}>
+                {district.district_name}
               </option>
             ))}
           </select>
@@ -168,6 +170,7 @@ export default function SchoolsPage() {
             placeholder="Địa chỉ chi tiết"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
+            required
           />
           <input
             className="input-field"
@@ -204,12 +207,18 @@ export default function SchoolsPage() {
                   className="border-b hover:bg-gray-50"
                 >
                   <td className="py-3 px-4 font-medium">
-                    {school.display_name || school.school_name}
+                    {school.school_name}
                   </td>
                   <td className="py-3 px-4">{school.province_name}</td>
                   <td className="py-3 px-4">{school.district_name}</td>
                   <td className="py-3 px-4">{school.address}</td>
-                  <td className="py-3 px-4">{school.phone || school.email}</td>
+                  <td className="py-3 px-4 text-gray-500">
+                    SĐT: {school.phone ?? "---"}
+                    <br />
+                    <div className="text-xs">
+                      Email: {school.email ?? "---"}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -4,7 +4,6 @@ import { gradingAPI } from "@/api";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
 import { FiXCircle, FiCheckCircle, FiClock, FiInfo } from "react-icons/fi";
 
 interface Essay {
@@ -182,6 +181,8 @@ export default function GradeEssayPage() {
                 {selectedEssay.question_number}
               </h3>
               <button
+                title="setSelectedEssay"
+                type="button"
                 onClick={() => setSelectedEssay(null)}
                 className="text-gray-400 hover:text-red-500"
               >
@@ -273,6 +274,7 @@ export default function GradeEssayPage() {
                       ĐIỂM SỐ (TỐI ĐA: {selectedEssay.max_points})
                     </p>
                     <input
+                      title="markScore"
                       type="number"
                       step="0.25"
                       min="0"

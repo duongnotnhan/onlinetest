@@ -150,6 +150,10 @@
   content: none !important;
 }
 
+code {
+  font-size: 1.15;
+}
+
 .bg-blue-600 {
   background-color: #2563eb !important;
 }

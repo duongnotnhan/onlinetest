@@ -87,7 +87,10 @@ export default function GradingAssignmentsPage() {
       setShowModal(false);
       fetchAssignments();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Lỗi phân công: " + (error as Error).message);
+      toast.error(
+        error.response?.data?.error ||
+          "Lỗi phân công: " + (error as Error).message,
+      );
     }
   };
 
@@ -98,7 +101,10 @@ export default function GradingAssignmentsPage() {
       toast.success("Đã thu hồi!");
       fetchAssignments();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Lỗi thu hồi: " + (error as Error).message);
+      toast.error(
+        error.response?.data?.error ||
+          "Lỗi thu hồi: " + (error as Error).message,
+      );
     }
   };
 
@@ -121,6 +127,7 @@ export default function GradingAssignmentsPage() {
           {grade.status !== "completed" && (
             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
               <button
+                title="grade?"
                 onClick={() => {
                   setTargetSlot({
                     responseId: response.response_id,
@@ -135,6 +142,7 @@ export default function GradingAssignmentsPage() {
                 <FiEdit size={12} />
               </button>
               <button
+                title="remove?"
                 onClick={() => handleRemove(grade.grade_id)}
                 className="p-1 bg-white border rounded hover:text-red-600"
               >
@@ -175,6 +183,7 @@ export default function GradingAssignmentsPage() {
           </p>
         </div>
         <select
+          title="selectSession"
           className="input-field w-64 bg-white"
           value={sessionId}
           onChange={(e) => setSessionId(e.target.value)}
@@ -254,6 +263,7 @@ export default function GradingAssignmentsPage() {
                 Phân Công Giám Khảo {targetSlot.order}
               </h3>
               <button
+                title="showModal"
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-red-500"
               >
@@ -265,6 +275,7 @@ export default function GradingAssignmentsPage() {
                 Chọn Giám khảo Ngữ Văn:
               </label>
               <select
+                title="selectGrader"
                 className="input-field mb-4"
                 value={selectedGraderId}
                 onChange={(e) => setSelectedGraderId(e.target.value)}

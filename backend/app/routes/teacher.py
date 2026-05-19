@@ -1007,6 +1007,60 @@ def register_students_for_exam():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@teacher_bp.route("/exam-sessions", methods=["GET"])
+@jwt_required()
+@teacher_required
+def get_exam_sessions():
+    """Get exam sessions list"""
+    try:
+        page = request.args.get("page", 1, type=int)
+        limit = request.args.get("limit", 20, type=int)
+
+        query = ExamSession.query.order_by(ExamSession.created_at.desc())
+        total = query.count()
+        sessions = query.paginate(page=page, per_page=limit, error_out=False)
+
+        data = []
+        for session in sessions.items:
+            data.append(
+                {
+                    "exam_session_id": session.exam_session_id,
+                    "session_name": session.session_name,
+                    "session_type": session.session_type,
+                    "start_date": (
+                        session.start_date.isoformat() if session.start_date else None
+                    ),
+                    "end_date": (
+                        session.end_date.isoformat() if session.end_date else None
+                    ),
+                    "is_published": session.is_published,
+                    "is_locked": session.is_locked,
+                    "published_date": (
+                        session.published_date.isoformat()
+                        if session.published_date
+                        else None
+                    ),
+                    "created_at": (
+                        session.created_at.isoformat() if session.created_at else None
+                    ),
+                }
+            )
+
+        return (
+            jsonify(
+                {
+                    "total": total,
+                    "page": page,
+                    "pages": (total + limit - 1) // limit,
+                    "data": data,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # ============================================================
 # MAKEUP EXAM REGISTRATION

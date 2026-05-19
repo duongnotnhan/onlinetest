@@ -7,6 +7,7 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
+// @ts-expect-error - module not found
 import "katex/dist/katex.min.css";
 import {
   FiCheckCircle,
@@ -94,27 +95,17 @@ function generateInstructionBanner(
 
 const MarkdownContent = memo(({ content }: { content: string }) => {
   if (!content) return null;
-  const processedContent = content.replace(
-    /<code>([\s\S]*?)<\/code>/g,
-    (match, codeInside) => {
-      const escapedCode = codeInside
-        .replace(/^\s+|\s+$/g, "")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      return `<code>${escapedCode}</code>`;
-    },
-  );
 
   return (
     <div className="prose max-w-none text-slate-900 text-base leading-relaxed custom-markdown-table">
       <ReactMarkdown
         remarkPlugins={[
-          [remarkGfm, { singleTilde: false, autolink: false }],
+          [remarkGfm, { singleTiffe: false, autolink: false }],
           remarkMath,
         ]}
         rehypePlugins={[rehypeRaw, rehypeKatex]}
       >
-        {processedContent}
+        {content}
       </ReactMarkdown>
     </div>
   );
@@ -184,6 +175,7 @@ const ShortAnswerInput = ({
         const isBoxDisabled = disabled || (i > 0 && chars[i - 1] === " ");
         return (
           <input
+            title="shortAnswer"
             key={i}
             id={`q_${questionId}_box_${i}`}
             type="text"
@@ -383,7 +375,6 @@ export default function TakeExamPage() {
           paper.subject_name,
           looseQsInPart,
           undefined,
-          true,
         );
 
         elements.push(

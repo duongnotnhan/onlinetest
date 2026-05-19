@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { teacherAPI, exportAPI } from "@/api";
 import {
@@ -29,7 +29,9 @@ interface ImportResult {
   total: number;
   imported: number;
   failed: number;
-  errors: { row: number; error: any }[];
+  errors: {
+    [x: string]: ReactNode; row: number; error: any 
+}[];
 }
 
 // Danh sách các môn tự chọn (Dựa trên DB cung cấp)
@@ -74,7 +76,9 @@ export default function TeacherStudentsPage() {
       const response = await teacherAPI.getStudents();
       setStudents(response.data.data || []);
     } catch (error) {
-      toast.error("Không thể tải danh sách thí sinh: " + (error as Error).message);
+      toast.error(
+        "Không thể tải danh sách thí sinh: " + (error as Error).message,
+      );
     } finally {
       setLoading(false);
     }
@@ -203,7 +207,12 @@ export default function TeacherStudentsPage() {
           >
             <FiDownloadCloud /> Tải mẫu CSV
           </button>
-          <button onClick={() => teacherAPI.resetBulkPasswords(students.map(s => s.student_id))} className="btn-secondary flex items-center gap-2 text-sm bg-red-600 hover:bg-red-700 hover:text-white">
+          <button
+            onClick={() =>
+              teacherAPI.resetBulkPasswords(students.map((s) => s.student_id))
+            }
+            className="btn-secondary flex items-center gap-2 text-sm bg-red-600 hover:bg-red-700 hover:text-white"
+          >
             <FiRefreshCw size={18} /> Reset Toàn Bộ Mật Khẩu
           </button>
         </div>
@@ -314,6 +323,7 @@ export default function TeacherStudentsPage() {
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-400 hover:text-red-500"
+                aria-label="Close edit modal"
               >
                 <FiXCircle size={24} />
               </button>
@@ -328,6 +338,7 @@ export default function TeacherStudentsPage() {
                   Họ và tên
                 </label>
                 <input
+                  title="fullName"
                   className="input-field"
                   value={editForm.full_name}
                   onChange={(e) =>
@@ -342,6 +353,7 @@ export default function TeacherStudentsPage() {
                     Lớp
                   </label>
                   <input
+                    title="className"
                     className="input-field"
                     value={editForm.class_name}
                     onChange={(e) =>
@@ -355,6 +367,7 @@ export default function TeacherStudentsPage() {
                     Số điện thoại
                   </label>
                   <input
+                    title="phoneNumber"
                     className="input-field"
                     value={editForm.phone}
                     onChange={(e) =>
@@ -374,6 +387,7 @@ export default function TeacherStudentsPage() {
                       Môn Tự chọn 1
                     </label>
                     <select
+                      title="eSubject1"
                       className="input-field py-2"
                       value={editForm.elective_subject_1}
                       onChange={(e) =>
@@ -397,6 +411,7 @@ export default function TeacherStudentsPage() {
                       Môn Tự chọn 2
                     </label>
                     <select
+                      title="eSubject2"
                       className="input-field py-2"
                       value={editForm.elective_subject_2}
                       onChange={(e) =>
@@ -450,6 +465,7 @@ export default function TeacherStudentsPage() {
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-gray-400 hover:text-red-500"
+                aria-label="Close import modal"
               >
                 <FiXCircle size={24} />
               </button>
@@ -569,6 +585,7 @@ export default function TeacherStudentsPage() {
                       tin trước khi nhập.
                     </strong>
                     <input
+                      title="importCSVFile"
                       type="file"
                       accept=".csv"
                       onChange={handleFileChange}

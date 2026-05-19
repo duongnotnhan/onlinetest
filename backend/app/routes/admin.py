@@ -643,7 +643,8 @@ def approve_makeup_registration(reg_id):
         ):
             return jsonify({"error": f"Duration must be {
                 subject.duration_minutes} minutes for {
-                subject.subject_name}"}), 400
+                subject.subject_name}"
+                }), 400
 
         user_id = get_jwt_identity()
         registration.approval_status = "approved"
@@ -910,7 +911,7 @@ def create_school():
         province = Province.query.get(data["province_id"])
         district = District.query.get(data["district_id"])
         if not province or not district or district.province_id != province.province_id:
-            return jsonify({"error": "Invalid province or ward/commune"}), 400
+            return jsonify({"error": "Invalid province or district/commune"}), 400
 
         school = School(
             school_name=data["school_name"],
@@ -997,31 +998,31 @@ def get_provinces():
         return jsonify({"error": str(e)}), 500
 
 
-@admin_bp.route("/locations/wards", methods=["GET"])
+@admin_bp.route("/locations/districts", methods=["GET"])
 @jwt_required()
 @admin_required
-def get_wards():
-    """Get wards/communes by province. The districts table stores ward/commune names."""
+def get_districts():
+    """Trả về toàn bộ Xã/Phường của Tỉnh"""
     try:
         province_id = request.args.get("province_id", type=int)
         query = District.query
         if province_id:
             query = query.filter_by(province_id=province_id)
 
-        wards = query.order_by(District.district_name.asc()).all()
+        districts = query.order_by(District.district_name.asc()).all()
         return (
             jsonify(
                 {
                     "data": [
                         {
-                            "district_id": ward.district_id,
-                            "district_name": ward.district_name,
-                            "province_id": ward.province_id,
+                            "district_id": district.district_id,
+                            "district_name": district.district_name,
+                            "province_id": district.province_id,
                             "province_name": (
-                                ward.province.province_name if ward.province else None
+                                district.province.province_name if district.province else None
                             ),
                         }
-                        for ward in wards
+                        for district in districts
                     ]
                 }
             ),

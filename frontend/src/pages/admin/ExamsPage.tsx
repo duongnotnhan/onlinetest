@@ -5,6 +5,7 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
+// @ts-expect-error - module not found
 import "katex/dist/katex.min.css";
 import { adminAPI, examAPI, uploadAPI, exportAPI } from "@/api";
 import {
@@ -312,27 +313,17 @@ function generateInstructionBanner(
 
 const MarkdownContent = memo(({ content }: { content: string }) => {
   if (!content) return null;
-  const processedContent = content.replace(
-    /<code>([\s\S]*?)<\/code>/g,
-    (codeInside) => {
-      const escapedCode = codeInside
-        .replace(/^\s+|\s+$/g, "")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      return `<code>${escapedCode}</code>`;
-    },
-  );
 
   return (
-    <div className="prose max-w-none text-gray-900 text-base leading-relaxed custom-markdown-table">
+    <div className="prose max-w-none text-slate-900 text-base leading-relaxed custom-markdown-table">
       <ReactMarkdown
         remarkPlugins={[
-          [remarkGfm, { singleTilde: false, autolink: false }],
+          [remarkGfm, { singleTiffe: false, autolink: false }],
           remarkMath,
         ]}
         rehypePlugins={[rehypeRaw, rehypeKatex]}
       >
-        {processedContent}
+        {content}
       </ReactMarkdown>
     </div>
   );
@@ -502,7 +493,7 @@ export default function ExamsPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [,setSelectedPaperId] = useState<number | null>(null);
+  const [, setSelectedPaperId] = useState<number | null>(null);
   const [paperDetail, setPaperDetail] = useState<PaperDetail | null>(null);
 
   const [sessionForm, setSessionForm] = useState({
@@ -1711,14 +1702,14 @@ export default function ExamsPage() {
                       </button>
                     )}
                     <button
-                      type='button'
+                      type="button"
                       onClick={() => openImportModal(part.key)}
                       className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"
                     >
                       <FiUpload size={16} /> Nhập CSV
                     </button>
                     <button
-                      type='button'
+                      type="button"
                       onClick={() => openAddQuestionModal(part.key)}
                       className="btn-primary px-3 py-2 text-xs flex items-center gap-1.5"
                     >
@@ -1956,6 +1947,8 @@ export default function ExamsPage() {
                   <FiUpload className="text-blue-600" /> Import CSV
                 </h3>
                 <button
+                  title="openImport"
+                  type="button"
                   onClick={() => setShowImportModal(false)}
                   className="text-slate-400 hover:text-red-600 transition-colors"
                 >
@@ -1972,6 +1965,7 @@ export default function ExamsPage() {
                     :
                   </label>
                   <select
+                    title="setImportForm"
                     className="input-field"
                     value={importForm.questionType}
                     onChange={(e) =>
@@ -1994,29 +1988,35 @@ export default function ExamsPage() {
                 </div>
                 <div className="content-box bg-blue-50/80 border-blue-200 p-4 text-xs text-blue-950 shadow-sm">
                   <p className="font-bold mb-1.5 flex items-center gap-1.5 text-blue-900">
-                    <FiFileText /> Chuẩn Header dòng đầu: <button
-                    type='button'
-                    onClick={() =>
-                      exportAPI.downloadTemplate(
-                        importForm.questionType === 'multiple_choice'
-                          ? 'question_mc'
-                          : importForm.questionType === 'true_false'
-                          ? 'question_tf'
-                          : 'question_sa'
-                      )
-                    }
-                    className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"
-                  >
-                    <FiDownload size={16} /> Tải mẫu CSV
-                  </button>
+                    <FiFileText /> Chuẩn Header dòng đầu:{" "}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        exportAPI.downloadTemplate(
+                          importForm.questionType === "multiple_choice"
+                            ? "question_mc"
+                            : importForm.questionType === "true_false"
+                              ? "question_tf"
+                              : "question_sa",
+                        )
+                      }
+                      className="btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"
+                    >
+                      <FiDownload size={16} /> Tải mẫu CSV
+                    </button>
                   </p>
                   <p className="font-mono bg-white p-2.5 border border-blue-300 rounded-lg overflow-x-auto text-xs font-bold shadow-inner">
                     {getCsvFormatGuide()}
                   </p>
-                  <p>Có thể để cột <strong>DinhHuong</strong> trống. Các giá trị chấp nhận trong cột <strong>DinhHuong</strong>: <code>Chung</code>, <code>ICT</code>, <code>CS</code>.</p>
+                  <p>
+                    Có thể để cột <strong>DinhHuong</strong> trống. Các giá trị
+                    chấp nhận trong cột <strong>DinhHuong</strong>:{" "}
+                    <code>Chung</code>, <code>ICT</code>, <code>CS</code>.
+                  </p>
                 </div>
                 <div className="content-box border-2 border-dashed border-slate-300 p-8 text-center hover:border-blue-500 hover:bg-blue-50/20 cursor-pointer relative transition-all shadow-none">
                   <input
+                    title="importCSV"
                     type="file"
                     accept=".csv"
                     onChange={(e) => setImportFile(e.target.files?.[0] || null)}
@@ -2067,6 +2067,8 @@ export default function ExamsPage() {
                     : "Tạo Vùng Ngữ liệu chung"}
                 </h3>
                 <button
+                  title="showSubsectionModal"
+                  type="button"
                   onClick={() => setShowSubsectionModal(false)}
                   className="text-slate-400 hover:text-red-600 transition-colors"
                 >
@@ -2100,6 +2102,7 @@ export default function ExamsPage() {
                       Thuộc phần:
                     </label>
                     <select
+                      title="setSubsectionPart"
                       className="input-field bg-slate-50 font-bold"
                       value={subsectionForm.part}
                       onChange={(e) =>
@@ -2122,6 +2125,7 @@ export default function ExamsPage() {
                     Cơ chế hiển thị bài đọc:
                   </label>
                   <select
+                    title="setSubsectionType"
                     className="input-field text-blue-900 font-bold"
                     value={subsectionForm.type}
                     onChange={(e) =>
@@ -2139,7 +2143,7 @@ export default function ExamsPage() {
                       Đoạn văn Điền khuyết (Tự thay thế ___ thành số câu)
                     </option>
                     <option value="arrangement_correction">
-                      Đoạn văn Sắp xếp câu / Sửa lỗi sai
+                      Đoạn văn Sắp xếp câu
                     </option>
                   </select>
                 </div>
@@ -2206,6 +2210,8 @@ export default function ExamsPage() {
                   {isEditingQuestion ? "Sửa Câu hỏi thi" : "Tạo Câu hỏi mới"}
                 </h3>
                 <button
+                  title="showQuestionModal"
+                  type="button"
                   onClick={() => setShowQuestionModal(false)}
                   className="text-slate-400 hover:text-red-600 transition-colors"
                 >
@@ -2222,6 +2228,7 @@ export default function ExamsPage() {
                       Gán vào mục:
                     </label>
                     <select
+                      title="questionPart"
                       className="input-field font-bold py-2"
                       value={questionForm.part}
                       onChange={(e) => {
@@ -2249,6 +2256,7 @@ export default function ExamsPage() {
                       Định dạng:
                     </label>
                     <select
+                      title="questionType"
                       className="input-field font-bold py-2 text-blue-900"
                       value={questionForm.question_type}
                       onChange={(e) =>
@@ -2271,6 +2279,7 @@ export default function ExamsPage() {
                       Điểm số:
                     </label>
                     <input
+                      title="questionPoints"
                       type="number"
                       step="0.05"
                       min="0"
@@ -2293,6 +2302,7 @@ export default function ExamsPage() {
                       Thuộc vùng ngữ liệu (Cho phép chuyển đổi linh hoạt):
                     </label>
                     <select
+                      title="inSubsection"
                       className="input-field font-medium"
                       value={questionForm.subsection_id || ""}
                       onChange={(e) =>
@@ -2303,7 +2313,7 @@ export default function ExamsPage() {
                       }
                     >
                       <option value="">
-                        -- Độc lập (Đưa ra khỏi Passage về luồng tự do) --
+                        --- Độc lập ---
                       </option>
                       {subsectionsList
                         .filter(
@@ -2331,6 +2341,7 @@ export default function ExamsPage() {
                           Định hướng chuyên sâu (Tin học):
                         </label>
                         <select
+                          title="iTTrackChoose"
                           className="input-field font-bold bg-blue-50/30"
                           value={questionForm.informatics_track}
                           onChange={(e) =>
@@ -2340,7 +2351,7 @@ export default function ExamsPage() {
                             })
                           }
                         >
-                          <option value="">-- Dành chung --</option>
+                          <option value="">--- Phần Chung ---</option>
                           <option value="computer_science">
                             Khoa học Máy tính (CS)
                           </option>
@@ -2369,6 +2380,7 @@ export default function ExamsPage() {
                         <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 text-xs text-blue-950 font-bold">
                           <span>ĐÁP ÁN:</span>
                           <select
+                            title="chooseCorrectAnswer"
                             className="bg-white border border-blue-300 rounded font-black px-2 py-0.5 text-blue-700"
                             value={questionForm.correct_answer}
                             onChange={(e) =>
@@ -2379,7 +2391,7 @@ export default function ExamsPage() {
                             }
                             required
                           >
-                            <option value="">- Chọn -</option>
+                            <option value="">--- Chọn ---</option>
                             <option value="A">A</option>
                             <option value="B">B</option>
                             <option value="C">C</option>
@@ -2422,7 +2434,7 @@ export default function ExamsPage() {
                   {questionForm.question_type === "true_false" && (
                     <div className="space-y-4">
                       <label className="text-sm font-bold text-slate-900 uppercase block">
-                        Cấu hình 4 ý hỏi Đúng/Sai:
+                        Cấu hình 4 ý Đúng/Sai:
                       </label>
                       <div className="space-y-3">
                         {["a", "b", "c", "d"].map((char, idx) => (
@@ -2437,7 +2449,7 @@ export default function ExamsPage() {
                               <input
                                 type="text"
                                 className="input-field font-mono text-sm bg-white"
-                                placeholder={`Nhập ý hỏi ${char}...`}
+                                placeholder={`Nhập nội dung ý ${char}...`}
                                 value={trueFalseDrafts[idx].text}
                                 onChange={(e) => {
                                   const arr = [...trueFalseDrafts];
@@ -2484,6 +2496,7 @@ export default function ExamsPage() {
                       <div className="flex gap-3 justify-start py-1">
                         {[0, 1, 2, 3].map((i) => (
                           <input
+                            title="shortAnswerCells"
                             key={i}
                             id={`short_ans_setup_${i}`}
                             type="text"
@@ -2520,7 +2533,7 @@ export default function ExamsPage() {
                   {questionForm.question_type === "essay" && (
                     <div className="space-y-4">
                       <MarkdownBox
-                        label="Gợi ý đáp án / Thang chấm:"
+                        label="Đáp án mẫu:"
                         value={questionForm.correct_answer || ""}
                         onChange={(v) =>
                           setQuestionForm({
@@ -2673,6 +2686,7 @@ export default function ExamsPage() {
                       Bắt đầu:
                     </label>
                     <input
+                      title="startDate"
                       type="date"
                       className="input-field"
                       value={sessionForm.start_date}
@@ -2690,6 +2704,7 @@ export default function ExamsPage() {
                       Kết thúc:
                     </label>
                     <input
+                      title="endDate"
                       type="date"
                       className="input-field"
                       value={sessionForm.end_date}
@@ -2721,6 +2736,7 @@ export default function ExamsPage() {
                     Kỳ thi:
                   </label>
                   <select
+                    title="chooseExamSessionForCreateSubjectSchedule"
                     className="input-field font-bold"
                     value={scheduleForm.exam_session_id}
                     onChange={(e) =>
@@ -2731,7 +2747,7 @@ export default function ExamsPage() {
                     }
                     required
                   >
-                    <option value="">- Chọn -</option>
+                    <option value="">--- Chọn ---</option>
                     {sessions.map((s) => (
                       <option key={s.exam_session_id} value={s.exam_session_id}>
                         {s.session_name}
@@ -2744,6 +2760,7 @@ export default function ExamsPage() {
                     Môn thi:
                   </label>
                   <select
+                    title="chooseSubjectForCreateSubjectSchedule"
                     className="input-field font-bold"
                     value={scheduleForm.subject_id}
                     onChange={(e) =>
@@ -2754,7 +2771,7 @@ export default function ExamsPage() {
                     }
                     required
                   >
-                    <option value="">- Chọn -</option>
+                    <option value="">--- Chọn ---</option>
                     {subjects.map((sub) => (
                       <option key={sub.subject_id} value={sub.subject_id}>
                         {sub.subject_name} ({sub.duration_minutes}p)
@@ -2767,6 +2784,7 @@ export default function ExamsPage() {
                     Ngày thi:
                   </label>
                   <input
+                    title="chooseDateForCreateSubjectSchedule"
                     type="date"
                     className="input-field"
                     value={scheduleForm.exam_date}
@@ -2785,6 +2803,7 @@ export default function ExamsPage() {
                       Giờ bắt đầu:
                     </label>
                     <input
+                      title="chooseStartTimeForCreateSubjectSchedule"
                       type="time"
                       className="input-field font-mono font-bold"
                       value={scheduleForm.start_time}
@@ -2802,6 +2821,7 @@ export default function ExamsPage() {
                       Giờ kết thúc:
                     </label>
                     <input
+                      title="chooseEndTimeForCreateSubjectSchedule"
                       type="time"
                       className="input-field font-mono font-bold"
                       value={scheduleForm.end_time}
@@ -2915,6 +2935,7 @@ export default function ExamsPage() {
                     Kỳ thi:
                   </label>
                   <select
+                    title="selectExamSessionId"
                     className="input-field font-bold"
                     value={paperForm.exam_session_id}
                     onChange={(e) => {
@@ -2939,6 +2960,7 @@ export default function ExamsPage() {
                     Môn thi:
                   </label>
                   <select
+                    title="filterSubjectId"
                     className="input-field font-bold"
                     value={paperForm.subject_id}
                     onChange={(e) =>
@@ -3000,11 +3022,12 @@ export default function ExamsPage() {
                 Lọc theo Kỳ thi:
               </span>
               <select
+                title="filterSessionId"
                 className="input-field w-72 bg-slate-50 py-1.5 text-sm font-bold"
                 value={selectedSessionId}
                 onChange={(e) => setSelectedSessionId(e.target.value)}
               >
-                <option value="">- Toàn bộ -</option>
+                <option value="">--- Toàn bộ ---</option>
                 {sessions.map((s) => (
                   <option key={s.exam_session_id} value={s.exam_session_id}>
                     {s.session_name}
@@ -3051,6 +3074,7 @@ export default function ExamsPage() {
                       đề
                     </div>
                     <button
+                      type="button"
                       onClick={() => loadPaperDetail(p.paper_id)}
                       className="btn-primary py-1.5 px-4 text-xs font-bold"
                     >

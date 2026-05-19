@@ -179,6 +179,7 @@ export default function LoginPage() {
               <div className="flex justify-between gap-2" onPaste={handlePaste}>
                 {otp.map((data, index) => (
                   <input
+                    title="authenticateCode"
                     key={index}
                     type="text"
                     ref={(el) => (inputRefs.current[index] = el)}

@@ -59,7 +59,7 @@ export default function SetupTwoFAPage() {
           </p>
         </div>
         {qrCode && (
-          <img src={qrCode} alt="QR 2FA" className="mx-auto h-48 w-48" />
+          <img src={qrCode} alt="Mã QR 2FA" className="mx-auto h-48 w-48" />
         )}
         <div className="text-xs text-gray-500 break-all">Secret: {secret}</div>
         <input
@@ -68,7 +68,7 @@ export default function SetupTwoFAPage() {
           onChange={(event) => setOtp(event.target.value)}
           inputMode="numeric"
           maxLength={6}
-          placeholder="Nhập mã 6 số"
+          placeholder="Nhập mã xác thực 6 chữ số"
           required
         />
         <button
