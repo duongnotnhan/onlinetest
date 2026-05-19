@@ -1,5 +1,6 @@
 # Hệ Thống Thi Tốt Nghiệp THPT Quốc Gia
 
+[![GitHub release](https://img.shields.io/github/release/duongnotnhan/onlinetest.svg)](https://github.com/duongnotnhan/onlinetest/releases/latest)
 [![CodeFactor](https://www.codefactor.io/repository/github/duongnotnhan/onlinetest/badge)](https://www.codefactor.io/repository/github/duongnotnhan/onlinetest)
 
 Hệ thống tạo đề, tổ chức và chấm thi mô phỏng kỳ thi tốt nghiệp THPT Quốc Gia trực tuyến.
