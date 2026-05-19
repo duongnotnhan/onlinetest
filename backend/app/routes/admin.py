@@ -217,6 +217,15 @@ def reset_teacher_password(teacher_id):
     try:
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
+        if not user:
+            return (
+                jsonify(
+                    {
+                        "error": "Forbidden.",
+                    }
+                ),
+                403,
+            )
 
         teacher = Teacher.query.get(teacher_id)
         if not teacher:

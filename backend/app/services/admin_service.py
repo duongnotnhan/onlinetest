@@ -58,12 +58,12 @@ class AdminService:
         except Exception as e:
             db.session.rollback()
             return False, str(e)
-    
+
     @staticmethod
-    def reset_user_password(user_id, type):
+    def reset_user_password(user_id, user_type):
         """Reset user password"""
         try:
-            user = User.query.filter_by(role=type, 
+            user = User.query.filter_by(role=user_type,
                                         user_id=user_id).first()
 
             if not user:
