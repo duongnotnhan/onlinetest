@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminAPI } from "@/api";
-import { FiCheckCircle, FiPlus, FiXCircle } from "react-icons/fi";
+import { FiCheckCircle, FiPlus, FiRefreshCw, FiXCircle } from "react-icons/fi";
 
 interface Teacher {
   teacher_id: number;
@@ -115,6 +115,24 @@ export default function TeachersManagementPage() {
       fetchData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Lỗi khi từ chối giáo viên");
+    }
+  };
+
+  // Xử lý Reset Mật khẩu
+  const resetPassword = async (teacherId: number) => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn cấp lại mật khẩu tạm thời cho giáo viên này?",
+      )
+    )
+      return;
+    try {
+      const response = await adminAPI.resetTeacherPassword(teacherId);
+      toast.success(`Mật khẩu mới: ${response.data.temporary_password}`, {
+        duration: 10000,
+      });
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Không thể reset mật khẩu");
     }
   };
 
@@ -261,6 +279,15 @@ export default function TeachersManagementPage() {
                         </button>
                       </div>
                     )}
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => resetPassword(teacher.teacher_id)}
+                        className="text-yellow-600 hover:bold flex items-center gap-1"
+                      >
+                        <FiRefreshCw /> Reset Password
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

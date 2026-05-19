@@ -2112,6 +2112,7 @@ export default function ExamsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     {isReadingPart && (
                       <button
+                        type="button"
                         onClick={() =>
                           openAddSubsectionModal(
                             part.key,

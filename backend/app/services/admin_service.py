@@ -5,6 +5,7 @@ from datetime import datetime
 from app import db
 from app.models import (ExamAttempt, ExamResult, ExamSchedule, ExamSession,
                         MakeupRegistration, Teacher, User)
+from app.utils.others import remove_accents
 
 
 class AdminService:
@@ -54,6 +55,30 @@ class AdminService:
 
             db.session.commit()
             return True, "Teacher rejected"
+        except Exception as e:
+            db.session.rollback()
+            return False, str(e)
+    
+    @staticmethod
+    def reset_user_password(user_id, type):
+        """Reset user password"""
+        try:
+            user = User.query.filter_by(role=type, 
+                                        user_id=user_id).first()
+
+            if not user:
+                return False, "Invalid Information."
+
+            # Generate temporary password
+            full_name = remove_accents(user.full_name).split()
+            temp_password = f"{full_name[0]}@{user.phone[-6:]}"
+
+            user.set_password(temp_password)
+            user.is_first_login = True
+
+            db.session.commit()
+
+            return True, temp_password
         except Exception as e:
             db.session.rollback()
             return False, str(e)

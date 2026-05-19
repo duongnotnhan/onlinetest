@@ -79,6 +79,10 @@ export const adminAPI = {
     });
   },
 
+  resetTeacherPassword: async (teacherId: number) => {
+    return axiosInstance.post(`/admin/teachers/${teacherId}/reset-password`);
+  },
+
   getSchools: async () => {
     return axiosInstance.get("/admin/schools");
   },

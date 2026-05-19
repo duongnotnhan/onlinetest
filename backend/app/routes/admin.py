@@ -11,6 +11,7 @@ from app.models import (District, EssayGrade, ExamAttempt, ExamResult,
                         ExamSchedule, ExamSession, MakeupRegistration,
                         Province, Question, School, Student, StudentResponse,
                         Subject, Teacher, User)
+from app.services.admin_service import AdminService
 from app.services.exam_service import ExamScoringService
 
 from . import admin_bp
@@ -198,6 +199,53 @@ def reject_teacher(teacher_id):
                     "message": "Teacher rejected",
                     "teacher_id": teacher_id,
                     "reason": reason,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route("/teachers/<int:teacher_id>/reset-password",
+                  methods=["POST"])
+@jwt_required()
+@admin_required
+def reset_teacher_password(teacher_id):
+    """Reset teacher password to temporary"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+
+        teacher = Teacher.query.get(teacher_id)
+        if not teacher:
+            return (
+                jsonify(
+                    {
+                        "error": "Invalid user.",
+                    }
+                ),
+                401,
+            )
+
+        status, temp_password = AdminService.reset_user_password(teacher.user_id, "teacher")
+
+        if not status:
+            return jsonify({"error": temp_password}), 400
+
+        teacher_user = User.query.get(teacher.user_id)
+        teacher_user.set_password(temp_password)
+        teacher_user.is_first_login = True
+
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "message": "Password reset successfully",
+                    "temporary_password": temp_password,
+                    "note": "Student must change this password on first login",
                 }
             ),
             200,
