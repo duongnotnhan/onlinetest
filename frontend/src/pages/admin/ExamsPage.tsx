@@ -774,7 +774,7 @@ export default function ExamsPage() {
       "8",
     );
     if (!numStr) return;
-    const num = parseInt(numStr, 20);
+    const num = parseInt(numStr, 10);
     if (isNaN(num) || num < 1 || num > 20)
       return toast.error("Số lượng nhập vào không hợp lệ");
     try {
@@ -3094,7 +3094,7 @@ export default function ExamsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                      Bắt đầu:
+                      Ngày bắt đầu:
                     </label>
                     <input
                       title="startDate"
@@ -3112,7 +3112,7 @@ export default function ExamsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                      Kết thúc:
+                      Ngày kết thúc:
                     </label>
                     <input
                       title="endDate"

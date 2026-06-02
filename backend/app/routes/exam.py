@@ -337,8 +337,8 @@ def generate_paper_versions(paper_id):
         data = request.get_json()
         num_versions = data.get("num_versions", 3)
 
-        if num_versions < 1 or num_versions > 10:
-            return jsonify({"error": "num_versions must be 1-10"}), 400
+        if num_versions < 1 or num_versions > 20:
+            return jsonify({"error": "num_versions must be 1-20"}), 400
 
         success, result = ExamPaperService.generate_paper_versions(
             paper_id=paper_id, num_versions=num_versions
